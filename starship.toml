@@ -1,0 +1,44 @@
+add_newline = false
+
+format = """
+$username\
+$hostname\
+$directory\
+$package\
+$python\
+$aws\
+$sudo\
+$cmd_duration\
+$time\
+$status\
+$container\
+$line_break\
+$character"""
+
+right_format = """
+$git_branch\
+$git_commit\
+$git_state\
+$git_metrics\
+$git_status\
+"""
+
+
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[✘](bold red)"
+
+[time]
+disabled = true
+time_format = "%R"
+format = '[ $time ]($style)'
+
+
+# Disable the package module, hiding it from the prompt completely
+[package]
+disabled = true
+
+[python]
+format = '[ ${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+symbol = "🐍 "
