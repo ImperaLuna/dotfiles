@@ -1,0 +1,16 @@
+# Create the .zsh directory
+mkdir -p ~/.zsh
+
+# Clone the repository
+git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.zsh/zsh-syntax-highlighting
+
+git clone https://github.com/marlonrichert/zsh-autocomplete.git ~/.zsh/zsh-autocomplete
+
+# Install fzf
+sudo apt install fzf -y
+
+# Or if you want the latest version, install from git:
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install
