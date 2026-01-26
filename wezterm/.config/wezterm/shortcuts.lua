@@ -1,6 +1,5 @@
 local wezterm = require 'wezterm'
 local M = {}
-
 M.keys = {
   -- Tabs
   {
@@ -13,7 +12,19 @@ M.keys = {
     mods = 'CTRL|SHIFT',
     action = wezterm.action.CloseCurrentTab { confirm = true },
   },
-  
+  -- Rename Tab
+  {
+    key = 'N',
+    mods = 'CTRL|SHIFT',
+    action = wezterm.action.PromptInputLine {
+      description = 'Enter new name for tab',
+      action = wezterm.action_callback(function(window, pane, line)
+        if line then
+          window:active_tab():set_title(line)
+        end
+      end),
+    },
+  },
   -- Panes: Split
   {
     key = '+',
@@ -25,7 +36,6 @@ M.keys = {
     mods = 'CTRL|SHIFT',
     action = wezterm.action.SplitVertical { domain = 'CurrentPaneDomain' },
   },
-  
   -- Panes: Navigate
   {
     key = 'h',
@@ -47,14 +57,12 @@ M.keys = {
     mods = 'CTRL|SHIFT',
     action = wezterm.action.ActivatePaneDirection 'Down',
   },
-  
   -- Panes: Close
   {
     key = 'x',
     mods = 'CTRL|SHIFT',
     action = wezterm.action.CloseCurrentPane { confirm = true },
   },
-  
   -- Font Size adjustment
   {
     key = 'PageUp',
@@ -71,7 +79,6 @@ M.keys = {
     mods = 'CTRL|SHIFT',
     action = wezterm.action.ResetFontSize,
   },
-
   -- Reload config
   {
     key = 'r',
@@ -79,5 +86,4 @@ M.keys = {
     action = wezterm.action.ReloadConfiguration,
   },
 }
-
 return M
