@@ -82,8 +82,8 @@ cargo install bat
 # fd (better find), ripgrep (better grep), zoxide (smarter cd)
 dnf install fd-find
 dnf install zoxide
-
-
+dnf install bat
+sudo dnf install ripgrep
 
 ### 5. Set zsh as Default Shell
 
