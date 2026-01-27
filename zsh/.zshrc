@@ -34,6 +34,7 @@ setopt hist_ignore_dups
 setopt hist_find_no_dups
 
 bindkey '^Z' undo
+bindkey "^[[3~" delete-char
 
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
