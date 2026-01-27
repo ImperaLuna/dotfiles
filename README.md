@@ -80,7 +80,10 @@ cargo install bat
 ```bash
 # Install based on your package manager
 # fd (better find), ripgrep (better grep), zoxide (smarter cd)
-```
+dnf install fd-find
+dnf install zoxide
+
+
 
 ### 5. Set zsh as Default Shell
 
@@ -117,4 +120,6 @@ stow */
 source ~/.zshrc
 ```
 
+Run setup script:
 
+source ./setup

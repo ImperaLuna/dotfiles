@@ -3,6 +3,8 @@ local constants = require("constants")
 local shortcuts = require("shortcuts")
 local config = wezterm.config_builder()
 
+config.enable_wayland = false
+
 -- Font settings
 config.font_size = 12
 config.line_height = 1.1
@@ -15,7 +17,7 @@ config.colors = {
 config.default_cursor_style = "BlinkingBar"
 
 --Apperance
-config.window_decorations = "RESIZE"
+config.window_decorations = "NONE"
 config.hide_tab_bar_if_only_one_tab = true
 
 config.window_padding = {

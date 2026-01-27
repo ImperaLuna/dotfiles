@@ -66,7 +66,7 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 # ============================================================================
 
 alias ls='eza --icons --color=always'
-
+alias vim='nvim'
 # PyCharm helper: pycharm --venv prints venv path, otherwise launches PyCharm
 pycharm() {
     if [ "$1" = "--venv" ]; then
