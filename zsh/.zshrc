@@ -85,3 +85,4 @@ pycharm() {
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(starship init zsh)"
+eval $(keychain --eval --quiet id_ed25519)
