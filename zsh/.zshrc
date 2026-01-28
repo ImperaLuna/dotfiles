@@ -85,5 +85,3 @@ pycharm() {
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(starship init zsh)"
-
-. "$HOME/.local/bin/env"
