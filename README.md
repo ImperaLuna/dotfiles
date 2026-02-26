@@ -21,7 +21,7 @@ chmod +x terminal_setup.sh
 ./terminal_setup.sh
 ```
 
-**What gets stowed:** `fish`, `git`, `starship`, `yazi`, `btop`, `nvim`
+**What gets stowed:** `fish`, `git`, `starship`, `yazi`, `btop`, `nvim`, `lazygit`
 
 ---
 
@@ -39,6 +39,6 @@ chmod +x terminal_setup.sh
 
 To stow a specific config manually:
 ```bash
-cd ~/dotfiles
+cd ~/dotfiles/terminal
 stow fish
 ```

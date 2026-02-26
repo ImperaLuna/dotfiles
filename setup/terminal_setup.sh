@@ -37,13 +37,13 @@ else
 fi
 
 # ── Dotfiles ──────────────────────────────────────────────────────────────────
-STOW_PACKAGES=(fish git starship btop yazi bat eza tmux nvim)
+STOW_PACKAGES=(fish git starship btop yazi bat eza tmux nvim lazygit)
 
 info "Stowing dotfiles..."
-cd "$DOTFILES_DIR"
+cd "$DOTFILES_DIR/terminal"
 for package in "${STOW_PACKAGES[@]}"; do
     info "Stowing $package..."
-    stow --restow "$package"
+    stow --target ~ --restow "$package"
 done
 
 # ── Terminal tools ────────────────────────────────────────────────────────────
@@ -67,6 +67,7 @@ paru -S --needed --noconfirm \
     yazi \
     tmux \
     neovim \
+    lazygit \
     ttf-jetbrains-mono-nerd \
     wl-clipboard
 
