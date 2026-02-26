@@ -1,0 +1,15 @@
+conf.d/*
+!conf.d/your_custom_file.fish
+!conf.d/aliases.fish
+!conf.d/fifc_config.fish
+!conf.d/fzf_config.fish
+!conf.d/theme.fish
+!conf.d/tools.fish
+
+# Universal variables (machine-specific)
+fish_variables
+
+# Fisher-managed completions and functions
+completions/
+functions/
+themes/
