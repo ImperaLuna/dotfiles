@@ -52,6 +52,7 @@ info "Installing terminal tools..."
 paru -S --needed --noconfirm \
     fish \
     fisher \
+    starship \
     eza \
     bat \
     ripgrep \
