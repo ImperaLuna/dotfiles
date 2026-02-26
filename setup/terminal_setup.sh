@@ -22,7 +22,7 @@ info "Installing base dependencies..."
 sudo pacman -S --needed --noconfirm git base-devel stow
 
 # ── Paru ─────────────────────────────────────────────────────────────────────
-DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 if ! command -v paru &>/dev/null; then
     info "Installing paru..."
@@ -37,7 +37,7 @@ else
 fi
 
 # ── Dotfiles ──────────────────────────────────────────────────────────────────
-STOW_PACKAGES=(fish git starship btop yazi bat eza)
+STOW_PACKAGES=(fish git starship btop yazi bat eza tmux nvim)
 
 info "Stowing dotfiles..."
 cd "$DOTFILES_DIR"
@@ -59,12 +59,14 @@ paru -S --needed --noconfirm \
     fd \
     fzf \
     zoxide \
-    tldr \
+    tealdeer \
     dust \
     duf \
     btop \
     git-delta \
     yazi \
+    tmux \
+    neovim \
     ttf-jetbrains-mono-nerd \
     wl-clipboard
 

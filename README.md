@@ -21,7 +21,7 @@ chmod +x terminal_setup.sh
 ./terminal_setup.sh
 ```
 
-**What gets stowed:** `fish`, `git`, `starship`, `yazi` `btop` 
+**What gets stowed:** `fish`, `git`, `starship`, `yazi`, `btop`, `nvim`
 
 ---
 
