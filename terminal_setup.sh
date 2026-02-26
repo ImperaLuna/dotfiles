@@ -37,16 +37,14 @@ else
 fi
 
 # ── Dotfiles ──────────────────────────────────────────────────────────────────
+STOW_PACKAGES=(fish git kitty starship zed)
+
 info "Stowing dotfiles..."
 cd "$DOTFILES_DIR"
-
-for dir in */; do
-    package="${dir%/}"
+for package in "${STOW_PACKAGES[@]}"; do
     info "Stowing $package..."
     stow --restow "$package"
 done
-
-success "Dotfiles stowed"
 
 # ── Terminal tools ────────────────────────────────────────────────────────────
 
