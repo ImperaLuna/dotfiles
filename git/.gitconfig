@@ -8,9 +8,13 @@
 [interactive]
     diffFilter = delta --color-only
 
+[include]
+    path = ~/.gitconfig-catppuccin
+
 [delta]
-    navigate = true    # use n/N to move between diff sections
-    side-by-side = true  # optional but nice
+    features = catppuccin-mocha
+    navigate = true
+    side-by-side = true
 
 [merge]
     conflictstyle = diff3

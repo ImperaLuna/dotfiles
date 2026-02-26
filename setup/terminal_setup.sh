@@ -37,7 +37,7 @@ else
 fi
 
 # ── Dotfiles ──────────────────────────────────────────────────────────────────
-STOW_PACKAGES=(fish git starship btop yazi)
+STOW_PACKAGES=(fish git starship btop yazi bat eza)
 
 info "Stowing dotfiles..."
 cd "$DOTFILES_DIR"
