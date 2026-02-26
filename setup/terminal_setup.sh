@@ -64,7 +64,18 @@ paru -S --needed --noconfirm \
     duf \
     btop \
     git-delta \
-    yazi
+    yazi \
+    ttf-jetbrains-mono-nerd \
+    wl-clipboard
+
+info "Installing yazi dependencies..."
+paru -S --needed --noconfirm \
+    ffmpeg \
+    p7zip \
+    poppler \
+    jq \
+    resvg \
+    imagemagick
 
 success "Terminal tools installed"
 
