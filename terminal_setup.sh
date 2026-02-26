@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-DOTFILES_REPO="https://github.com/yourusername/dotfiles"
 DOTFILES_DIR="$HOME/dotfiles"
 
 # Colors
@@ -23,6 +22,7 @@ info "Installing base dependencies..."
 sudo pacman -S --needed --noconfirm git base-devel stow
 
 # ── Paru ─────────────────────────────────────────────────────────────────────
+DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if ! command -v paru &>/dev/null; then
     info "Installing paru..."
@@ -37,15 +37,6 @@ else
 fi
 
 # ── Dotfiles ──────────────────────────────────────────────────────────────────
-
-if [ ! -d "$DOTFILES_DIR" ]; then
-    info "Cloning dotfiles..."
-    git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
-else
-    info "Dotfiles already cloned, pulling latest..."
-    git -C "$DOTFILES_DIR" pull
-fi
-
 info "Stowing dotfiles..."
 cd "$DOTFILES_DIR"
 
