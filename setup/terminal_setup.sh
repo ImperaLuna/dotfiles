@@ -21,19 +21,19 @@ sudo pacman -Syu --noconfirm
 info "Installing base dependencies..."
 sudo pacman -S --needed --noconfirm git base-devel stow
 
-# ── Paru ─────────────────────────────────────────────────────────────────────
+# ── Yay ──────────────────────────────────────────────────────────────────────
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-if ! command -v paru &>/dev/null; then
-    info "Installing paru..."
-    git clone https://aur.archlinux.org/paru.git /tmp/paru
-    pushd /tmp/paru
+if ! command -v yay &>/dev/null; then
+    info "Installing yay..."
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    pushd /tmp/yay
     makepkg -si --noconfirm
     popd
-    rm -rf /tmp/paru
-    success "paru installed"
+    rm -rf /tmp/yay
+    success "yay installed"
 else
-    info "paru already installed, skipping"
+    info "yay already installed, skipping"
 fi
 
 # ── Dotfiles ──────────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ done
 # ── Terminal tools ────────────────────────────────────────────────────────────
 
 info "Installing terminal tools..."
-paru -S --needed --noconfirm \
+yay -S --needed --noconfirm \
     fish \
     fisher \
     starship \
@@ -72,7 +72,7 @@ paru -S --needed --noconfirm \
     wl-clipboard
 
 info "Installing yazi dependencies..."
-paru -S --needed --noconfirm \
+yay -S --needed --noconfirm \
     ffmpeg \
     p7zip \
     poppler \
@@ -101,9 +101,13 @@ else
 fi
 
 info "Installing fisher and plugins..."
-fish -c "fisher update"
+fish --no-config -c "set -ga fish_function_path ~/.config/fish/functions; fisher update"
 
 success "Fisher and plugins installed"
+
+info "Building bat theme cache..."
+bat cache --build
+success "bat cache built"
 
 # ─────────────────────────────────────────────────────────────────────────────
 

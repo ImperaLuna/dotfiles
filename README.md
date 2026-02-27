@@ -37,8 +37,22 @@ chmod +x terminal_setup.sh
 
 ## Manual Stow
 
-To stow a specific config manually:
+Configs are split into category directories (`terminal/`, `apps/`, `desktop/`). Stow must be run from inside the category directory with `--target ~` since the stow directory is no longer directly inside `~`.
+
+Stow a single package:
 ```bash
 cd ~/dotfiles/terminal
-stow fish
+stow --target ~ fish
+```
+
+Stow all packages in a category:
+```bash
+cd ~/dotfiles/terminal
+stow --target ~ */
+```
+
+Restow all (e.g. after moving files or fixing broken links):
+```bash
+cd ~/dotfiles/terminal
+stow --target ~ --restow */
 ```
