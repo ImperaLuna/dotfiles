@@ -114,7 +114,7 @@ else
 fi
 
 info "Installing fisher and plugins..."
-fish --no-config -c "set -ga fish_function_path ~/.config/fish/functions; fisher update"
+fish -c "fisher update"
 
 success "Fisher and plugins installed"
 
