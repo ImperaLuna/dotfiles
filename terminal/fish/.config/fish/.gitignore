@@ -5,11 +5,13 @@ conf.d/*
 !conf.d/fzf_config.fish
 !conf.d/theme.fish
 !conf.d/tools.fish
+!conf.d/tldr_search.fish
 
 # Universal variables (machine-specific)
 fish_variables
 
 # Fisher-managed completions and functions
 completions/
-functions/
+functions/*
+!functions/_fzf_search_commands_tldr.fish
 themes/

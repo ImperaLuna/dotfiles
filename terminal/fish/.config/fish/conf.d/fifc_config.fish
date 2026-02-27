@@ -1,3 +1,12 @@
+# Override fifc's default command preview: use --language=markdown since 'man' is aliased to tldr
+function _fifc_preview_cmd -d "Preview command via tldr (man alias) with markdown highlighting"
+    if type -q bat
+        man $fifc_candidate 2>/dev/null | bat --paging=never --language=markdown $fifc_bat_opts
+    else
+        man $fifc_candidate 2>/dev/null
+    end
+end
+
 # Show package info from repos, falls back to AUR via yay/paru
 fifc \
     -n 'string match -qr "^(pacman|paru|yay)" "$fifc_commandline"' \
