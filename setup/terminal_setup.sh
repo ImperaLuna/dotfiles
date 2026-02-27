@@ -46,45 +46,58 @@ for package in "${STOW_PACKAGES[@]}"; do
     stow --target ~ --restow "$package"
 done
 
-# ── Terminal tools ────────────────────────────────────────────────────────────
+# ── Fish ──────────────────────────────────────────────────────────────────────
 
-info "Installing terminal tools..."
+info "Installing fish and shell environment..."
 yay -S --needed --noconfirm \
     fish \
     fisher \
-    starship \
-    eza \
-    bat \
-    ripgrep \
-    fd \
     fzf \
-    zoxide \
     tealdeer \
-    dust \
-    duf \
-    btop \
+    starship \
+    zoxide \
     git-delta \
-    yazi \
-    tmux \
-    neovim \
-    lazygit \
-    ttf-jetbrains-mono-nerd \
-    wl-clipboard
+    bat \
+    eza \
+    ripgrep \
+    fd
 
-info "Installing yazi dependencies..."
+# ── Neovim ────────────────────────────────────────────────────────────────────
+
+info "Installing neovim and dependencies..."
 yay -S --needed --noconfirm \
+    neovim \
+    tree-sitter-cli \
+    lazygit
+
+# ── Yazi ──────────────────────────────────────────────────────────────────────
+
+info "Installing yazi and dependencies..."
+yay -S --needed --noconfirm \
+    yazi \
     ffmpeg \
     p7zip \
     poppler \
     jq \
     resvg \
-    imagemagick
+    imagemagick \
+    ttf-jetbrains-mono-nerd \
+    wl-clipboard
 
-success "Terminal tools installed"
+# ── Other tools ───────────────────────────────────────────────────────────────
+
+info "Installing other tools..."
+yay -S --needed --noconfirm \
+    dust \
+    duf \
+    btop \
+    tmux
+
+success "All tools installed"
 
 
 
-# ── Fish ──────────────────────────────────────────────────────────────────────
+# ── Default shell ─────────────────────────────────────────────────────────────
 
 info "Setting fish as default shell..."
 FISH_PATH=$(which fish)
