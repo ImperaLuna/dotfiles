@@ -37,7 +37,7 @@ else
 fi
 
 # ── Dotfiles ──────────────────────────────────────────────────────────────────
-STOW_PACKAGES=(fish git starship btop yazi bat eza tmux nvim lazygit)
+STOW_PACKAGES=(fish git starship btop yazi bat eza tmux nvim lazygit tealdeer)
 
 info "Stowing dotfiles..."
 cd "$DOTFILES_DIR/terminal"
@@ -118,6 +118,10 @@ fish -c "fisher update"
 
 success "Fisher and plugins installed"
 
+info "Updating tealdeer cache..."
+tldr --update
+success "Tealdeer cache updated"
+
 info "Building bat theme cache..."
 bat cache --build
 success "bat cache built"
@@ -129,7 +133,7 @@ if [ ! -d "$HOME/.config/tmux/plugins/tpm" ]; then
     git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
 fi
 tmux new-session -d -s __bootstrap 2>/dev/null || true
-~/.config/tmux/plugins/tpm/bin/install_plugins
+tmux run-shell ~/.config/tmux/plugins/tpm/bin/install_plugins
 tmux kill-session -t __bootstrap 2>/dev/null || true
 success "Tmux plugins installed"
 
