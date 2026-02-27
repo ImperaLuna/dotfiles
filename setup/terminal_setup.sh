@@ -76,7 +76,7 @@ info "Installing yazi and dependencies..."
 yay -S --needed --noconfirm \
     yazi \
     ffmpeg \
-    p7zip \
+    7zip \
     poppler \
     jq \
     resvg \
@@ -121,6 +121,17 @@ success "Fisher and plugins installed"
 info "Building bat theme cache..."
 bat cache --build
 success "bat cache built"
+
+# ── Tmux plugins (TPM) ────────────────────────────────────────────────────────
+
+info "Installing TPM and tmux plugins..."
+if [ ! -d "$HOME/.config/tmux/plugins/tpm" ]; then
+    git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
+fi
+tmux new-session -d -s __bootstrap 2>/dev/null || true
+~/.config/tmux/plugins/tpm/bin/install_plugins
+tmux kill-session -t __bootstrap 2>/dev/null || true
+success "Tmux plugins installed"
 
 # ─────────────────────────────────────────────────────────────────────────────
 

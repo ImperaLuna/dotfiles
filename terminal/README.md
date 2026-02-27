@@ -15,6 +15,7 @@ Modern shell with autosuggestions, syntax highlighting, and tab completions out 
 | `ctrl+alt+f` | Search files in current dir with fzf |
 | `ctrl+alt+l` | Search git log with fzf |
 | `ctrl+alt+s` | Search git status with fzf |
+| `ctrl+/` | Search all commands with tldr preview |
 | `tab` | fifc-powered fuzzy tab completion |
 
 ### [fisher](https://github.com/jorgebucaran/fisher)
@@ -195,6 +196,8 @@ Fast tldr client — simplified man pages with practical examples. Aliased as `m
 |---------|-------------|
 | `tldr <command>` | Show examples for a command |
 | `tldr --update` | Update the local cache |
+
+> **Tip:** In the `ctrl+/` command search menu, hold **Shift** and drag to select text from the preview — lets you copy individual lines from the tldr page.
 
 ---
 
