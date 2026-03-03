@@ -1,6 +1,6 @@
 import Quickshell
 import Quickshell.Io
-import "./bar"
+import "./drawers"
 import "./launcher"
 
 ShellRoot {
@@ -15,9 +15,12 @@ ShellRoot {
 
     Variants {
         model: Quickshell.screens
-        Bar {
+        Drawers {
             required property var modelData
+            screenModel: modelData
             screen: modelData
         }
+
     }
+
 }

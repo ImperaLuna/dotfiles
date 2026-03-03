@@ -8,18 +8,29 @@ import "../theme"
 PanelWindow {
     id: root
 
+    // Keep in sync with border/ScreenBorder.qml borderWidth.
+    property int frameInset: 8
+
     anchors {
         top: true
         left: true
         right: true
     }
 
-    implicitHeight: 36
+    implicitHeight: 36 + frameInset
     exclusiveZone: implicitHeight
     color: "transparent"
 
     Rectangle {
-        anchors.fill: parent
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+            topMargin: frameInset
+            leftMargin: frameInset
+            rightMargin: frameInset
+        }
+        height: 36
         color: Colors.base
 
         RowLayout {
