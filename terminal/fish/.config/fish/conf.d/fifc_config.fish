@@ -9,7 +9,7 @@ end
 
 # Show package info from repos, falls back to AUR via yay/paru
 fifc \
-    -n 'string match -qr "^(pacman|paru|yay)" "$fifc_commandline"' \
+    -n 'string match -qr "^(sudo )?(pacman|paru|yay)" "$fifc_commandline"' \
     -p 'pacman -Si "$fifc_candidate" 2>/dev/null; or yay -Si "$fifc_candidate" 2>/dev/null; or paru -Si "$fifc_candidate" 2>/dev/null'
 
 # Show commit history for branches, or changed files for commit hashes
