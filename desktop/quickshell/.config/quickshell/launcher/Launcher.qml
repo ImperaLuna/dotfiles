@@ -55,11 +55,11 @@ PanelWindow {
         return false
     }
 
-    function moveSelection(direction) {
+    function moveSelection(direction, keepInputFocus) {
         if (root.results.length <= 0)
             return
 
-        if (!listView.activeFocus)
+        if (!keepInputFocus && !listView.activeFocus)
             listView.forceActiveFocus()
 
         let next = listView.currentIndex
@@ -70,6 +70,25 @@ PanelWindow {
         } else {
             next = Math.max(0, next - 1)
         }
+
+        listView.currentIndex = next
+        listView.positionViewAtIndex(next, ListView.Contain)
+    }
+
+    function pageMove(direction) {
+        if (root.results.length <= 0)
+            return
+
+        const itemHeight = 56
+        const step = Math.max(1, Math.floor(listView.height / itemHeight) - 1)
+
+        let next = listView.currentIndex
+        if (next < 0)
+            next = 0
+
+        next = direction > 0
+            ? Math.min(root.results.length - 1, next + step)
+            : Math.max(0, next - step)
 
         listView.currentIndex = next
         listView.positionViewAtIndex(next, ListView.Contain)
@@ -250,8 +269,8 @@ PanelWindow {
 
                     onTextChanged: root.refilterResetSelection()
 
-                    Keys.onUpPressed: root.moveSelection(-1)
-                    Keys.onDownPressed: root.moveSelection(1)
+                    Keys.onUpPressed: root.moveSelection(-1, true)
+                    Keys.onDownPressed: root.moveSelection(1, true)
 
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Escape) {
@@ -263,6 +282,22 @@ PanelWindow {
                             else if (root.results.length > 0)
                                 root.launch(root.results[0])
                             event.accepted = true
+                        } else if (event.modifiers & Qt.ControlModifier) {
+                            if (event.key === Qt.Key_J) {
+                                root.moveSelection(1, true)
+                                event.accepted = true
+                            } else if (event.key === Qt.Key_K) {
+                                root.moveSelection(-1, true)
+                                event.accepted = true
+                            } else if (event.key === Qt.Key_D) {
+                                root.pageMove(1)
+                                event.accepted = true
+                            } else if (event.key === Qt.Key_U) {
+                                root.pageMove(-1)
+                                event.accepted = true
+                            } else {
+                                event.accepted = false
+                            }
                         } else {
                             event.accepted = false
                         }
@@ -375,6 +410,22 @@ PanelWindow {
                         if (currentIndex >= 0 && currentIndex < root.results.length)
                             root.launch(root.results[currentIndex])
                         event.accepted = true
+                    } else if (event.modifiers & Qt.ControlModifier) {
+                        if (event.key === Qt.Key_J) {
+                            root.moveSelection(1)
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_K) {
+                            root.moveSelection(-1)
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_D) {
+                            root.pageMove(1)
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_U) {
+                            root.pageMove(-1)
+                            event.accepted = true
+                        } else {
+                            event.accepted = false
+                        }
                     } else {
                         event.accepted = false
                     }
