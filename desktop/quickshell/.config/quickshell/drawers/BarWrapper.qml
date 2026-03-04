@@ -15,6 +15,8 @@ Item {
     readonly property int barHeight: Math.max(20, Math.round(Metrics.barHeightBase * resolutionScale))
     readonly property int barPadding: Math.max(6, Math.round(Metrics.barPaddingBase * resolutionScale))
     readonly property int sectionGap: Math.max(2, Math.round(Metrics.sectionGapBase * resolutionScale))
+    property bool sessionOpen: false
+    signal toggleSession()
 
     implicitHeight: barHeight
 
@@ -25,7 +27,7 @@ Item {
         radius: 0
         topLeftRadius: root.barCornerRadius
         topRightRadius: root.barCornerRadius
-        clip: true
+        clip: false
 
         RowLayout {
             anchors {
@@ -48,7 +50,10 @@ Item {
             Clock {}
             Item { Layout.fillWidth: true }
 
-            SysTray {}
+            SysTray {
+                sessionOpen: root.sessionOpen
+                onToggleSession: root.toggleSession()
+            }
         }
     }
 }

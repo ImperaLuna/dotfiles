@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import QtQuick.Shapes
 import "./"
 import "../theme"
 
@@ -33,10 +34,11 @@ PanelWindow {
     property int barCornerRadius: Math.max(1, Math.round(cornerRadius * barCornerFactor))
     property int inset: 0
     property color borderColor: Colors.base
+    property bool sessionOpen: false
 
     Exclusions {
         screenModel: root.screenModel
-        topReserved: root.inset + bar.implicitHeight
+        topReserved: root.inset + panels.bar.implicitHeight
         sideReserved: root.inset + root.borderWidth
         bottomReserved: root.inset + root.borderWidth
     }
@@ -51,9 +53,9 @@ PanelWindow {
 
         Region {
             x: root.inset + root.borderWidth
-            y: root.inset + bar.implicitHeight
-            width: Math.max(0, root.width - (root.inset + root.borderWidth) * 2)
-            height: Math.max(0, root.height - root.inset - bar.implicitHeight - root.borderWidth)
+            y: root.inset + panels.bar.implicitHeight
+            width: Math.max(0, root.width - (root.inset + root.borderWidth) * 2 - panels.session.width)
+            height: Math.max(0, root.height - root.inset - panels.bar.implicitHeight - root.borderWidth)
             intersection: Intersection.Subtract
         }
 
@@ -61,13 +63,13 @@ PanelWindow {
             x: root.inset
             y: root.inset
             width: Math.max(0, root.width - root.inset * 2)
-            height: bar.implicitHeight
+            height: panels.bar.implicitHeight
             intersection: Intersection.Combine
         }
     }
 
-    BarWrapper {
-        id: bar
+    Panels {
+        id: panels
         z: 2
 
         screenModel: root.screenModel
@@ -75,14 +77,26 @@ PanelWindow {
         inset: root.inset
         cornerRadius: root.cornerRadius
         barCornerRadius: root.barCornerRadius
+        borderWidth: root.borderWidth
+        sessionOpen: root.sessionOpen
+        onToggleSession: root.sessionOpen = !root.sessionOpen
+        onCloseSession: root.sessionOpen = false
+    }
 
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-            topMargin: root.inset
-            leftMargin: root.inset
-            rightMargin: root.inset
+    Shape {
+        id: panelBackgrounds
+        z: 1.5
+
+        anchors.fill: parent
+        anchors.margins: root.inset + root.borderWidth
+        preferredRendererType: Shape.CurveRenderer
+
+        SessionBackground {
+            wrapper: panels.session
+            rounding: Math.round(root.cornerRadius * 1.8)
+
+            startX: panelBackgrounds.width
+            startY: (panelBackgrounds.height - wrapper.height) / 2 - rounding
         }
     }
 
@@ -95,7 +109,7 @@ PanelWindow {
 
         borderWidth: root.borderWidth
         cornerRadius: root.cornerRadius
-        barHeight: bar.implicitHeight
+        barHeight: panels.bar.implicitHeight
         inset: root.inset
         borderColor: root.borderColor
     }
