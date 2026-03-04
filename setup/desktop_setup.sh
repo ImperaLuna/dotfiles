@@ -23,6 +23,15 @@ if ! command -v stow &>/dev/null; then
     error "stow is not installed. Run terminal_setup.sh first."
 fi
 
+# ── Fonts ─────────────────────────────────────────────────────────────────────
+
+info "Installing fonts..."
+yay -S --needed --noconfirm \
+    ttf-jetbrains-mono-nerd \
+    ttf-material-symbols-variable
+fc-cache -f
+success "Fonts installed"
+
 # ── Quickshell ────────────────────────────────────────────────────────────────
 
 info "Installing quickshell..."
