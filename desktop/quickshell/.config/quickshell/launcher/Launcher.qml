@@ -128,14 +128,96 @@ PanelWindow {
             results = allApps
             return
         }
-        results = allApps.filter(app =>
-            (app.name ?? "").toLowerCase().includes(q) ||
-            (app.description ?? "").toLowerCase().includes(q)
-        )
+
+        function scoreField(field, needle, base, allowSubsequence) {
+            if (!field)
+                return -1
+
+            const text = field.toLowerCase()
+            if (text === needle)
+                return base + 8000
+            if (text.startsWith(needle))
+                return base + 6000 - Math.min(2000, text.length)
+
+            const idx = text.indexOf(needle)
+            if (idx >= 0) {
+                // Keep very short queries strict to avoid noisy matches.
+                if (needle.length <= 3 && idx > 0) {
+                    const prev = text[idx - 1]
+                    const wordBoundary = (prev < "a" || prev > "z") && (prev < "0" || prev > "9")
+                    if (!wordBoundary)
+                        return -1
+                }
+                return base + 3500 - idx * 18
+            }
+
+            if (!allowSubsequence || needle.length < 4)
+                return -1
+
+            // Lightweight subsequence matching for fuzzy-ish reordering.
+            let last = -1
+            let streak = 0
+            let hits = 0
+            for (let i = 0; i < needle.length; i++) {
+                const pos = text.indexOf(needle[i], last + 1)
+                if (pos < 0)
+                    return -1
+                if (pos === last + 1)
+                    streak += 1
+                else
+                    streak = 0
+                hits += 1 + streak
+                last = pos
+            }
+            return base + 1200 + hits * 16 - last
+        }
+
+        const scored = []
+        for (const app of allApps) {
+            const name = app.name ?? ""
+            const desc = app.description ?? ""
+            const exec = app.exec ?? ""
+
+            const sName = scoreField(name, q, 6000, true)
+            const sDesc = q.length >= 3 ? scoreField(desc, q, 2400, false) : -1
+            const sExec = q.length >= 4 ? scoreField(exec, q, 1200, false) : -1
+            let score = Math.max(sName, sDesc, sExec)
+
+            if (score >= 0) {
+                const launches = Number(app.launch_count ?? 0)
+                const lastLaunch = Number(app.launch_last ?? 0)
+                if (launches > 0) {
+                    const nowSec = Date.now() / 1000
+                    const ageDays = Math.max(0, (nowSec - lastLaunch) / 86400)
+
+                    // 7-day half-life: recent usage matters more, old usage fades.
+                    const recency = lastLaunch > 0
+                        ? Math.exp(-Math.LN2 * ageDays / 7)
+                        : 0
+                    const frequency = Math.log2(launches + 1)
+                    const frecency = frequency * (520 + recency * 780)
+                    const recencyKick = ageDays < (1 / 24) ? 200 : (ageDays < 1 ? 90 : 0)
+
+                    score += Math.min(3400, frecency + recencyKick)
+                }
+                scored.push({ app, score })
+            }
+        }
+
+        scored.sort((a, b) => {
+            if (b.score !== a.score)
+                return b.score - a.score
+            const an = (a.app.name ?? "").toLowerCase()
+            const bn = (b.app.name ?? "").toLowerCase()
+            return an.localeCompare(bn)
+        })
+
+        results = scored.map(e => e.app)
     }
 
     function refilterResetSelection() {
         refilter()
+        syncResultsModel()
 
         if (results.length <= 0) {
             listView.currentIndex = -1
@@ -148,6 +230,7 @@ PanelWindow {
 
     function refilterPreservingSelection(previousEntry) {
         refilter()
+        syncResultsModel()
 
         if (results.length <= 0) {
             listView.currentIndex = -1
@@ -181,6 +264,12 @@ PanelWindow {
         root.refilterPreservingSelection(previousEntry)
     }
 
+    function syncResultsModel() {
+        resultsModel.clear()
+        for (const app of results)
+            resultsModel.append({ entry: app })
+    }
+
     function sanitizeExec(execLine) {
         if (!execLine) return ""
 
@@ -196,6 +285,13 @@ PanelWindow {
     function launch(entry) {
         const cmd = sanitizeExec(entry.exec ?? "")
         if (!cmd) return
+
+        const appId = (entry.id ?? "").trim()
+        if (appId !== "") {
+            Quickshell.execDetached(["python3", root.scriptPath, "--record-launch", appId])
+            entry.launch_count = Number(entry.launch_count ?? 0) + 1
+            entry.launch_last = Math.floor(Date.now() / 1000)
+        }
 
         Quickshell.execDetached(["sh", "-lc", cmd])
         root.visible = false
@@ -216,6 +312,7 @@ PanelWindow {
             }
             searchField.text = ""
             results = allApps
+            syncResultsModel()
             if (allApps.length > 0) {
                 listView.currentIndex = 0
                 searchField.forceActiveFocus()
@@ -310,17 +407,101 @@ PanelWindow {
                 id: listView
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                model: root.results
+                model: ListModel { id: resultsModel }
                 clip: true
+                boundsBehavior: Flickable.DragAndOvershootBounds
+                maximumFlickVelocity: 3000
+                flickDeceleration: 8500
                 keyNavigationEnabled: false
                 keyNavigationWraps: false
                 preferredHighlightBegin: 0
                 preferredHighlightEnd: height
                 // Keep hover/currentIndex updates from auto-scrolling the viewport.
                 highlightRangeMode: ListView.NoHighlightRange
-                highlightFollowsCurrentItem: true
+                highlightFollowsCurrentItem: false
                 highlightMoveDuration: 90
                 highlightResizeDuration: 90
+
+                rebound: Transition {
+                    NumberAnimation {
+                        properties: "x,y"
+                        duration: 220
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                Behavior on contentY {
+                    enabled: !listView.moving && !listView.dragging
+
+                    NumberAnimation {
+                        duration: 120
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                ScrollBar.vertical: ScrollBar {
+                    id: scrollBar
+                    property bool showWhileScrolling: false
+
+                    visible: listView.contentHeight > listView.height
+                    policy: ScrollBar.AsNeeded
+                    active: showWhileScrolling || pressed
+                    width: 10
+                    padding: 2
+
+                    Connections {
+                        target: listView
+
+                        function onMovingChanged() {
+                            if (listView.moving) {
+                                fadeOutTimer.stop()
+                                scrollBar.showWhileScrolling = true
+                            } else {
+                                fadeOutTimer.restart()
+                            }
+                        }
+                    }
+
+                    Timer {
+                        id: fadeOutTimer
+                        interval: 650
+                        onTriggered: scrollBar.showWhileScrolling = false
+                    }
+
+                    background: Rectangle {
+                        radius: 999
+                        color: Colors.surface0
+                        opacity: (scrollBar.size < 1 && scrollBar.showWhileScrolling) ? 0.4 : 0
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 420
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                    }
+
+                    contentItem: Rectangle {
+                        radius: 999
+                        color: Colors.overlay0
+                        opacity: {
+                            if (scrollBar.size >= 1)
+                                return 0
+                            if (scrollBar.pressed)
+                                return 0.95
+                            if (scrollBar.showWhileScrolling)
+                                return 0.8
+                            return 0
+                        }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 420
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                    }
+                }
 
                 highlight: Rectangle {
                     width: listView.width
@@ -328,10 +509,18 @@ PanelWindow {
                     radius: 6
                     color: Colors.surface0
                     opacity: (listView.currentIndex >= 0 && !listView.moving) ? 1 : 0
+                    y: listView.currentItem ? listView.currentItem.y : 0
 
                     Behavior on opacity {
                         NumberAnimation {
                             duration: 70
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: 150
                             easing.type: Easing.OutCubic
                         }
                     }
@@ -342,14 +531,13 @@ PanelWindow {
                         property: "opacity"
                         from: 0
                         to: 1
-                        duration: 110
+                        duration: 130
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
-                        property: "scale"
-                        from: 0.98
-                        to: 1
-                        duration: 110
+                        property: "y"
+                        from: 10
+                        duration: 130
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -359,22 +547,34 @@ PanelWindow {
                         property: "opacity"
                         from: 1
                         to: 0
-                        duration: 90
-                        easing.type: Easing.InCubic
+                        duration: 110
+                        easing.type: Easing.InOutCubic
                     }
                     NumberAnimation {
                         property: "scale"
                         from: 1
-                        to: 0.98
-                        duration: 90
-                        easing.type: Easing.InCubic
+                        to: 0.985
+                        duration: 110
+                        easing.type: Easing.InOutCubic
                     }
                 }
 
                 move: Transition {
                     NumberAnimation {
                         property: "y"
-                        duration: 130
+                        duration: 170
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        property: "opacity"
+                        to: 1
+                        duration: 120
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        property: "scale"
+                        to: 1
+                        duration: 150
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -382,7 +582,19 @@ PanelWindow {
                 addDisplaced: Transition {
                     NumberAnimation {
                         property: "y"
-                        duration: 130
+                        duration: 170
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        property: "opacity"
+                        to: 1
+                        duration: 120
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        property: "scale"
+                        to: 1
+                        duration: 150
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -390,7 +602,19 @@ PanelWindow {
                 displaced: Transition {
                     NumberAnimation {
                         property: "y"
-                        duration: 130
+                        duration: 170
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        property: "opacity"
+                        to: 1
+                        duration: 120
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        property: "scale"
+                        to: 1
+                        duration: 150
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -433,7 +657,7 @@ PanelWindow {
 
                 delegate: Rectangle {
                     id: appItem
-                    required property var modelData
+                    required property var entry
                     required property int index
 
                     // Ignore partially clipped top/bottom rows for hover selection.
@@ -469,10 +693,10 @@ PanelWindow {
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
                                 mipmap: true
-                                source: ((appItem.modelData.icon_name ?? "") !== ""
-                                    && !(appItem.modelData.icon_name ?? "").startsWith("/")
-                                    && !((appItem.modelData.icon ?? "").startsWith("/")))
-                                    ? "image://icon/" + appItem.modelData.icon_name
+                                source: ((appItem.entry.icon_name ?? "") !== ""
+                                    && !(appItem.entry.icon_name ?? "").startsWith("/")
+                                    && !((appItem.entry.icon ?? "").startsWith("/")))
+                                    ? "image://icon/" + appItem.entry.icon_name
                                     : ""
                                 visible: status === Image.Ready
                             }
@@ -483,8 +707,8 @@ PanelWindow {
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
                                 mipmap: true
-                                source: ((appItem.modelData.icon ?? "").startsWith("/"))
-                                    ? "file://" + appItem.modelData.icon
+                                source: ((appItem.entry.icon ?? "").startsWith("/"))
+                                    ? "file://" + appItem.entry.icon
                                     : ""
                                 visible: status === Image.Ready
                             }
@@ -511,7 +735,7 @@ PanelWindow {
                             width: parent.width - 48   // 36 icon + 12 spacing
 
                             Text {
-                                text: appItem.modelData.name ?? ""
+                                text: appItem.entry.name ?? ""
                                 color: Colors.text
                                 font.pixelSize: 14
                                 elide: Text.ElideRight
@@ -519,12 +743,12 @@ PanelWindow {
                             }
 
                             Text {
-                                text: appItem.modelData.description ?? ""
+                                text: appItem.entry.description ?? ""
                                 color: Colors.subtext0
                                 font.pixelSize: 11
                                 elide: Text.ElideRight
                                 width: parent.width
-                                visible: (appItem.modelData.description ?? "") !== ""
+                                visible: (appItem.entry.description ?? "") !== ""
                             }
                         }
                     }
@@ -546,7 +770,7 @@ PanelWindow {
                             root.lastPointerGlobalPos = mapToGlobal(mouseX, mouseY)
                             listView.currentIndex = appItem.index
                         }
-                        onClicked: root.launch(appItem.modelData)
+                        onClicked: root.launch(appItem.entry)
                     }
                 }
             }

@@ -75,7 +75,8 @@ PIXMAP_DIRS = [
 ]
 
 CACHE_PATH = os.path.expanduser("~/.cache/quickshell/apps-cache.json")
-CACHE_VERSION = 4
+CACHE_VERSION = 5
+USAGE_PATH = os.path.expanduser("~/.local/state/quickshell/launcher-usage.json")
 FALLBACK_POLL_SECONDS = 2.0
 EVENT_DEBOUNCE_SECONDS = 0.25
 
@@ -230,6 +231,7 @@ def compute_sources_signature():
 def build_apps():
     apps = []
     seen = set()
+    usage = load_usage()
 
     for d in APP_DIRS:
         if not os.path.isdir(d):
@@ -247,17 +249,30 @@ def build_apps():
                     continue
 
                 name = entry.get("Name", "").strip()
-                if not name or name in seen:
+                desktop_id = os.path.splitext(os.path.basename(path))[0]
+                if not name or not desktop_id or name in seen:
                     continue
+
+                usage_item = usage.get(desktop_id, {})
+                if isinstance(usage_item, dict):
+                    launch_count = int(usage_item.get("count", 0))
+                    launch_last = int(usage_item.get("last", 0))
+                else:
+                    # Backward compatibility for older usage formats.
+                    launch_count = int(usage_item or 0)
+                    launch_last = 0
 
                 seen.add(name)
                 apps.append(
                     {
+                        "id": desktop_id,
                         "name": name,
                         "icon_name": entry.get("Icon", ""),
                         "icon": resolve_icon(entry.get("Icon", "")),
                         "exec": entry.get("Exec", ""),
                         "description": entry.get("Comment", ""),
+                        "launch_count": launch_count,
+                        "launch_last": launch_last,
                     }
                 )
             except Exception:
@@ -299,6 +314,56 @@ def save_cache(sig, apps):
 
 def emit_apps(apps):
     print(json.dumps(apps, ensure_ascii=False), flush=True)
+
+
+def load_usage():
+    try:
+        with open(USAGE_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return {}
+        return data
+    except Exception:
+        return {}
+
+
+def save_usage(usage):
+    try:
+        os.makedirs(os.path.dirname(USAGE_PATH), exist_ok=True)
+        tmp = USAGE_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(usage, f, ensure_ascii=False)
+        os.replace(tmp, USAGE_PATH)
+    except Exception:
+        pass
+
+
+def record_launch(app_id):
+    app_id = (app_id or "").strip()
+    if not app_id:
+        return
+
+    usage = load_usage()
+    item = usage.get(app_id, {})
+    if isinstance(item, dict):
+        count = int(item.get("count", 0)) + 1
+    else:
+        count = int(item or 0) + 1
+    usage[app_id] = {"count": count, "last": int(time.time())}
+
+    # Avoid unbounded growth if stale IDs accumulate.
+    if len(usage) > 4000:
+        trimmed = sorted(
+            usage.items(),
+            key=lambda kv: (
+                int(kv[1].get("last", 0)) if isinstance(kv[1], dict) else 0,
+                int(kv[1].get("count", 0)) if isinstance(kv[1], dict) else int(kv[1] or 0),
+            ),
+            reverse=True,
+        )[:2500]
+        usage = dict(trimmed)
+
+    save_usage(usage)
 
 
 def refresh_and_emit():
@@ -432,7 +497,11 @@ def run_watch_inotify():
 
 
 if __name__ == "__main__":
-    if "--watch" in sys.argv[1:]:
+    if "--record-launch" in sys.argv[1:]:
+        idx = sys.argv.index("--record-launch")
+        app_id = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else ""
+        record_launch(app_id)
+    elif "--watch" in sys.argv[1:]:
         run_watch()
     else:
         run_once()
