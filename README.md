@@ -17,7 +17,6 @@ Installs and configures: fish, starship, and core CLI tools.
 mkdir ~/dotfiles
 git clone https://github.com/ImperaLuna/dotfiles.git ~/dotfiles
 cd ~/dotfiles/setup
-chmod +x terminal_setup.sh
 ./terminal_setup.sh
 ```
 
