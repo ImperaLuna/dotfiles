@@ -10,10 +10,16 @@ Item {
 
     readonly property int focusedWorkspaceId: Hyprland.focusedWorkspace?.id ?? 0
     readonly property string focusedWorkspaceName: Hyprland.focusedWorkspace?.name ?? ""
+    readonly property int activeWindowWorkspaceId: Hyprland.activeToplevel?.workspace?.id ?? 0
+    readonly property string activeWindowWorkspaceName: Hyprland.activeToplevel?.workspace?.name ?? ""
     readonly property bool isActive: focusedWorkspaceId === -99
           || focusedWorkspaceId === 99
           || focusedWorkspaceName === "~"
           || focusedWorkspaceName.startsWith("special:")
+          || activeWindowWorkspaceId === -99
+          || activeWindowWorkspaceId === 99
+          || activeWindowWorkspaceName === "~"
+          || activeWindowWorkspaceName.startsWith("special:")
     readonly property bool hasWindows: specialClientCount > 0
 
     visible: isActive || hasWindows
