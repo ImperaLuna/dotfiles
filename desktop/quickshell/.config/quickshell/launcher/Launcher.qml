@@ -21,10 +21,18 @@ PanelWindow {
     implicitWidth: 640
     implicitHeight: 480
 
-    property point lastHoverGlobalPos: Qt.point(-1, -1)
     property var allApps: []
     property var results: []
     property var pendingAppsUpdate: null
+    property point lastPointerGlobalPos: Qt.point(-1, -1)
+
+    function pointerActuallyMoved(globalPos) {
+        if (globalPos.x !== root.lastPointerGlobalPos.x || globalPos.y !== root.lastPointerGlobalPos.y) {
+            root.lastPointerGlobalPos = globalPos
+            return true
+        }
+        return false
+    }
 
     function moveSelection(direction) {
         if (root.results.length <= 0)
@@ -157,6 +165,7 @@ PanelWindow {
 
     onVisibleChanged: {
         if (visible) {
+            root.lastPointerGlobalPos = Qt.point(-1, -1)
             if (root.pendingAppsUpdate !== null) {
                 root.applyAppsUpdate(root.pendingAppsUpdate)
                 root.pendingAppsUpdate = null
@@ -247,7 +256,7 @@ PanelWindow {
                 keyNavigationWraps: false
                 preferredHighlightBegin: 0
                 preferredHighlightEnd: height
-                highlightRangeMode: ListView.ApplyRange
+                highlightRangeMode: ListView.NoHighlightRange
                 highlightFollowsCurrentItem: true
                 highlightMoveDuration: 90
                 highlightResizeDuration: 90
@@ -257,7 +266,14 @@ PanelWindow {
                     height: listView.currentItem ? listView.currentItem.height : 56
                     radius: 6
                     color: Colors.surface0
-                    opacity: listView.currentIndex >= 0 ? 1 : 0
+                    opacity: (listView.currentIndex >= 0 && !listView.moving) ? 1 : 0
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 70
+                            easing.type: Easing.OutCubic
+                        }
+                    }
                 }
 
                 add: Transition {
@@ -435,17 +451,17 @@ PanelWindow {
                         hoverEnabled: true
                         onEntered: {
                             const gpos = mapToGlobal(mouseX, mouseY)
-                            if (gpos.x !== root.lastHoverGlobalPos.x || gpos.y !== root.lastHoverGlobalPos.y) {
-                                root.lastHoverGlobalPos = gpos
+                            if (root.pointerActuallyMoved(gpos) && !listView.moving)
                                 listView.currentIndex = appItem.index
-                            }
                         }
                         onPositionChanged: mouse => {
                             const gpos = mapToGlobal(mouse.x, mouse.y)
-                            if (gpos.x !== root.lastHoverGlobalPos.x || gpos.y !== root.lastHoverGlobalPos.y) {
-                                root.lastHoverGlobalPos = gpos
+                            if (root.pointerActuallyMoved(gpos) && !listView.moving)
                                 listView.currentIndex = appItem.index
-                            }
+                        }
+                        onPressed: {
+                            root.lastPointerGlobalPos = mapToGlobal(mouseX, mouseY)
+                            listView.currentIndex = appItem.index
                         }
                         onClicked: root.launch(appItem.modelData)
                     }
