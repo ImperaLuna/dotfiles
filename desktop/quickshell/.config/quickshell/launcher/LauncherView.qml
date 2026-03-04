@@ -13,6 +13,23 @@ Item {
     property alias queryText: searchField.text
     readonly property bool listHasActiveFocus: listView.activeFocus
     readonly property int listViewportHeight: listView.height
+    readonly property int rowHeight: 56
+    readonly property int maxVisibleRows: 7
+    readonly property int frameMargins: 24
+    readonly property int columnSpacing: 8
+    readonly property int searchHeight: 42
+    readonly property int maxListHeight: rowHeight * maxVisibleRows
+    readonly property int targetListHeight: Math.min(maxListHeight, Math.max(0, results.length) * rowHeight)
+    property real animatedListHeight: targetListHeight
+    readonly property int preferredHeight: Math.round(frameMargins + columnSpacing + searchHeight + animatedListHeight)
+    readonly property int maxHeight: Math.round(frameMargins + columnSpacing + searchHeight + maxListHeight)
+
+    Behavior on animatedListHeight {
+        NumberAnimation {
+            duration: 210
+            easing.type: Easing.OutCubic
+        }
+    }
 
     signal launchRequested(var entry)
     signal escapeRequested()
@@ -54,7 +71,7 @@ Item {
         if (index < 0)
             return
 
-        const itemHeight = 56
+        const itemHeight = rowHeight
         const top = listView.contentY
         const bottom = top + listView.height
         const itemTop = index * itemHeight
@@ -68,7 +85,12 @@ Item {
     }
 
     Rectangle {
-        anchors.fill: parent
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+        }
+        height: viewRoot.preferredHeight
         color: Colors.base
         radius: 12
         border.color: Colors.surface1
@@ -83,7 +105,7 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 42
+                implicitHeight: searchHeight
                 color: Colors.mantle
                 radius: 8
 
@@ -142,7 +164,7 @@ Item {
             ListView {
                 id: listView
                 Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredHeight: Math.round(viewRoot.animatedListHeight)
                 model: viewRoot.results
                 clip: true
                 boundsBehavior: Flickable.DragAndOvershootBounds
@@ -369,7 +391,7 @@ Item {
                     }
 
                     width: listView.width
-                    height: 56
+                    height: rowHeight
                     color: "transparent"
                     radius: 6
 

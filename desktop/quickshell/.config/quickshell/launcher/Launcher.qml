@@ -17,7 +17,7 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
     implicitWidth: 640
-    implicitHeight: 480
+    implicitHeight: view.maxHeight
 
     property var allApps: []
     property var results: []
@@ -61,7 +61,7 @@ PanelWindow {
     function pageMove(direction) {
         if (root.results.length <= 0)
             return;
-        const next = Logic.pageSelectionIndex(view.currentIndex, root.results.length, view.listViewportHeight, 56, direction);
+        const next = Logic.pageSelectionIndex(view.currentIndex, root.results.length, view.listViewportHeight, view.rowHeight, direction);
 
         view.currentIndex = next;
         view.ensureIndexVisible(next);
