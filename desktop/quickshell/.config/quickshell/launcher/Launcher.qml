@@ -1,7 +1,8 @@
+pragma ComponentBehavior: Bound
+
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -20,6 +21,7 @@ PanelWindow {
     implicitWidth: 640
     implicitHeight: 480
 
+    property point lastHoverGlobalPos: Qt.point(-1, -1)
     property var allApps: []
     property var results: []
     property var pendingAppsUpdate: null
@@ -181,7 +183,7 @@ PanelWindow {
             // Search field
             Rectangle {
                 Layout.fillWidth: true
-                height: 42
+                implicitHeight: 42
                 color: Colors.mantle
                 radius: 8
 
@@ -224,7 +226,6 @@ PanelWindow {
                 id: listView
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-
                 model: root.results
                 clip: true
                 keyNavigationEnabled: false
@@ -251,6 +252,7 @@ PanelWindow {
                 }
 
                 delegate: Rectangle {
+                    id: appItem
                     required property var modelData
                     required property int index
 
@@ -283,10 +285,10 @@ PanelWindow {
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
                                 mipmap: true
-                                source: ((modelData.icon_name ?? "") !== ""
-                                    && !(modelData.icon_name ?? "").startsWith("/")
-                                    && !((modelData.icon ?? "").startsWith("/")))
-                                    ? "image://icon/" + modelData.icon_name
+                                source: ((appItem.modelData.icon_name ?? "") !== ""
+                                    && !(appItem.modelData.icon_name ?? "").startsWith("/")
+                                    && !((appItem.modelData.icon ?? "").startsWith("/")))
+                                    ? "image://icon/" + appItem.modelData.icon_name
                                     : ""
                                 visible: status === Image.Ready
                             }
@@ -297,8 +299,8 @@ PanelWindow {
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
                                 mipmap: true
-                                source: ((modelData.icon ?? "").startsWith("/"))
-                                    ? "file://" + modelData.icon
+                                source: ((appItem.modelData.icon ?? "").startsWith("/"))
+                                    ? "file://" + appItem.modelData.icon
                                     : ""
                                 visible: status === Image.Ready
                             }
@@ -325,7 +327,7 @@ PanelWindow {
                             width: parent.width - 48   // 36 icon + 12 spacing
 
                             Text {
-                                text: modelData.name ?? ""
+                                text: appItem.modelData.name ?? ""
                                 color: Colors.text
                                 font.pixelSize: 14
                                 elide: Text.ElideRight
@@ -333,12 +335,12 @@ PanelWindow {
                             }
 
                             Text {
-                                text: modelData.description ?? ""
+                                text: appItem.modelData.description ?? ""
                                 color: Colors.subtext0
                                 font.pixelSize: 11
                                 elide: Text.ElideRight
                                 width: parent.width
-                                visible: (modelData.description ?? "") !== ""
+                                visible: (appItem.modelData.description ?? "") !== ""
                             }
                         }
                     }
@@ -346,8 +348,21 @@ PanelWindow {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        onEntered: listView.currentIndex = index
-                        onClicked: root.launch(modelData)
+                        onEntered: {
+                            const gpos = mapToGlobal(mouseX, mouseY)
+                            if (gpos.x !== root.lastHoverGlobalPos.x || gpos.y !== root.lastHoverGlobalPos.y) {
+                                root.lastHoverGlobalPos = gpos
+                                listView.currentIndex = appItem.index
+                            }
+                        }
+                        onPositionChanged: mouse => {
+                            const gpos = mapToGlobal(mouse.x, mouse.y)
+                            if (gpos.x !== root.lastHoverGlobalPos.x || gpos.y !== root.lastHoverGlobalPos.y) {
+                                root.lastHoverGlobalPos = gpos
+                                listView.currentIndex = appItem.index
+                            }
+                        }
+                        onClicked: root.launch(appItem.modelData)
                     }
                 }
             }

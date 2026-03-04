@@ -1,6 +1,4 @@
 import Quickshell
-import Quickshell.Wayland
-import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
 import "../theme"
@@ -26,9 +24,9 @@ PanelWindow {
             top: parent.top
             left: parent.left
             right: parent.right
-            topMargin: frameInset
-            leftMargin: frameInset
-            rightMargin: frameInset
+            topMargin: root.frameInset
+            leftMargin: root.frameInset
+            rightMargin: root.frameInset
         }
         height: 36
         color: Colors.base

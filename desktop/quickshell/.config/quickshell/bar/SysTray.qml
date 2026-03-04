@@ -1,4 +1,3 @@
-import Quickshell
 import QtQuick
 import "../theme"
 
@@ -23,7 +22,7 @@ Item {
         anchors.centerIn: parent
         anchors.horizontalCenterOffset: -1
         text: "power_settings_new"
-        color: sessionOpen ? Colors.maroon : Colors.red
+        color: root.sessionOpen ? Colors.maroon : Colors.red
         opacity: clickArea.containsMouse ? 0.85 : 1.0
         font.family: "Material Symbols Rounded"
         font.pixelSize: 18

@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell.Hyprland
 import "../theme"
@@ -13,6 +15,7 @@ Row {
         model: Hyprland.workspaces
 
         Rectangle {
+            id: pill
             required property var modelData
 
             // Special workspaces are rendered by Scratchpad.qml as "~".
@@ -25,7 +28,7 @@ Row {
 
             visible: modelData.id > 0
                   && !isSpecialWorkspace
-                  && modelData.monitor?.name === monitorName
+                  && pill.modelData.monitor?.name === root.monitorName
                   && (hasWindows || modelData.active)
 
             height: Math.max(16, Math.round(Metrics.workspacePillHeightBase * root.uiScale))
@@ -44,11 +47,11 @@ Row {
             Text {
                 id: label
                 anchors.centerIn: parent
-                text: modelData.name
-                color: modelData.active ? Colors.crust : Colors.subtext0
+                text: pill.modelData.name
+                color: pill.modelData.active ? Colors.crust : Colors.subtext0
                 font.family: "JetBrainsMono Nerd Font"
                 font.pixelSize: Math.max(9, Math.round(Metrics.workspaceFontBase * root.uiScale))
-                font.bold: modelData.active
+                font.bold: pill.modelData.active
 
                 Behavior on color {
                     ColorAnimation { duration: 120 }
@@ -58,7 +61,7 @@ Row {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: modelData.activate()
+                onClicked: pill.modelData.activate()
             }
         }
     }
