@@ -15,9 +15,18 @@ Row {
         Rectangle {
             required property var modelData
 
+            // Special workspaces are rendered by Scratchpad.qml as "~".
+            // Keep the normal workspace row free of special:* entries.
+            property bool isSpecialWorkspace: modelData.id === 99
+                  || modelData.id === -99
+                  || modelData.name === "~"
+                  || (modelData.name ?? "").startsWith("special:")
+            property bool hasWindows: (modelData.lastIpcObject?.windows ?? 0) > 0
+
             visible: modelData.id > 0
+                  && !isSpecialWorkspace
                   && modelData.monitor?.name === monitorName
-                  && ((modelData.lastIpcObject?.windows ?? 0) > 0 || modelData.active)
+                  && (hasWindows || modelData.active)
 
             height: Math.max(16, Math.round(Metrics.workspacePillHeightBase * root.uiScale))
             width: Math.max(
