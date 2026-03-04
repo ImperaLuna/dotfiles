@@ -5,6 +5,7 @@ import QtQuick.Shapes
 import "./"
 import "../theme"
 
+// qmllint disable uncreatable-type
 PanelWindow {
     id: root
 

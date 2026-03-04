@@ -8,6 +8,7 @@ import QtQuick.Layouts
 import "../bar"
 import "../theme"
 
+// qmllint disable uncreatable-type
 PanelWindow {
     id: root
 

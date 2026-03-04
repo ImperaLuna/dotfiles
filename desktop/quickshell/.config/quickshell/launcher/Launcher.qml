@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import QtQuick
 import "LauncherLogic.js" as Logic
 
+// qmllint disable uncreatable-type
 PanelWindow {
     id: root
 
@@ -22,26 +23,25 @@ PanelWindow {
     property var results: []
     property var pendingAppsUpdate: null
 
-    readonly property string scriptPath:
-        Qt.resolvedUrl("list-apps.py").toString().replace(/^file:\/\//, "")
+    readonly property string scriptPath: Qt.resolvedUrl("list-apps.py").toString().replace(/^file:\/\//, "")
 
     Process {
         id: appLoader
         command: ["python3", root.scriptPath, "--watch"]
 
         stdout: SplitParser {
-            onRead: function(line) {
-                line = line.trim()
+            onRead: function (line) {
+                line = line.trim();
                 if (!line)
-                    return
+                    return;
                 try {
-                    const apps = JSON.parse(line)
+                    const apps = JSON.parse(line);
                     if (root.visible)
-                        root.pendingAppsUpdate = apps
+                        root.pendingAppsUpdate = apps;
                     else
-                        root.applyAppsUpdate(apps)
+                        root.applyAppsUpdate(apps);
                 } catch (e) {
-                    console.warn("Launcher: failed to parse app list:", e)
+                    console.warn("Launcher: failed to parse app list:", e);
                 }
             }
         }
@@ -49,120 +49,107 @@ PanelWindow {
 
     function moveSelection(direction, keepInputFocus) {
         if (root.results.length <= 0)
-            return
-
+            return;
         if (!keepInputFocus && !view.listHasActiveFocus)
-            view.focusList()
+            view.focusList();
 
-        const next = Logic.nextSelectionIndex(view.currentIndex, root.results.length, direction)
-        view.currentIndex = next
-        view.ensureIndexVisible(next)
+        const next = Logic.nextSelectionIndex(view.currentIndex, root.results.length, direction);
+        view.currentIndex = next;
+        view.ensureIndexVisible(next);
     }
 
     function pageMove(direction) {
         if (root.results.length <= 0)
-            return
+            return;
+        const next = Logic.pageSelectionIndex(view.currentIndex, root.results.length, view.listViewportHeight, 56, direction);
 
-        const next = Logic.pageSelectionIndex(
-            view.currentIndex,
-            root.results.length,
-            view.listViewportHeight,
-            56,
-            direction
-        )
-
-        view.currentIndex = next
-        view.ensureIndexVisible(next)
+        view.currentIndex = next;
+        view.ensureIndexVisible(next);
     }
 
     function refilter() {
-        root.results = Logic.filterApps(root.allApps, view.queryText)
+        root.results = Logic.filterApps(root.allApps, view.queryText);
     }
 
     function refilterResetSelection() {
-        refilter()
+        refilter();
 
         if (root.results.length <= 0) {
-            view.currentIndex = -1
-            return
+            view.currentIndex = -1;
+            return;
         }
 
-        view.currentIndex = 0
-        view.positionAtIndex(0, ListView.Beginning)
+        view.currentIndex = 0;
+        view.positionAtIndex(0, ListView.Beginning);
     }
 
     function refilterPreservingSelection(previousEntry, previousIndex) {
-        refilter()
+        refilter();
 
         if (root.results.length <= 0) {
-            view.currentIndex = -1
-            return
+            view.currentIndex = -1;
+            return;
         }
 
         if (previousEntry) {
-            const prevName = previousEntry.name ?? ""
-            const prevExec = previousEntry.exec ?? ""
-            const idx = root.results.findIndex(app =>
-                (app.name ?? "") === prevName && (app.exec ?? "") === prevExec
-            )
+            const prevName = previousEntry.name ?? "";
+            const prevExec = previousEntry.exec ?? "";
+            const idx = root.results.findIndex(app => (app.name ?? "") === prevName && (app.exec ?? "") === prevExec);
             if (idx >= 0) {
-                view.currentIndex = idx
-                view.positionAtIndex(idx, ListView.Contain)
-                return
+                view.currentIndex = idx;
+                view.positionAtIndex(idx, ListView.Contain);
+                return;
             }
         }
 
-        const clamped = Logic.clampSelectionIndex(previousIndex, root.results.length)
-        view.currentIndex = clamped
-        view.positionAtIndex(clamped, ListView.Contain)
+        const clamped = Logic.clampSelectionIndex(previousIndex, root.results.length);
+        view.currentIndex = clamped;
+        view.positionAtIndex(clamped, ListView.Contain);
     }
 
     function applyAppsUpdate(apps) {
-        const prevIdx = view.currentIndex
-        const previousEntry = (prevIdx >= 0 && prevIdx < root.results.length)
-            ? root.results[prevIdx]
-            : null
+        const prevIdx = view.currentIndex;
+        const previousEntry = (prevIdx >= 0 && prevIdx < root.results.length) ? root.results[prevIdx] : null;
 
-        root.allApps = apps
-        root.refilterPreservingSelection(previousEntry, prevIdx)
+        root.allApps = apps;
+        root.refilterPreservingSelection(previousEntry, prevIdx);
     }
 
     function launch(entry) {
-        const cmd = Logic.sanitizeExec(entry.exec ?? "")
+        const cmd = Logic.sanitizeExec(entry.exec ?? "");
         if (!cmd)
-            return
-
-        const appId = (entry.id ?? "").trim()
+            return;
+        const appId = (entry.id ?? "").trim();
         if (appId !== "") {
-            Quickshell.execDetached(["python3", root.scriptPath, "--record-launch", appId])
-            entry.launch_count = Number(entry.launch_count ?? 0) + 1
-            entry.launch_last = Math.floor(Date.now() / 1000)
+            Quickshell.execDetached(["python3", root.scriptPath, "--record-launch", appId]);
+            entry.launch_count = Number(entry.launch_count ?? 0) + 1;
+            entry.launch_last = Math.floor(Date.now() / 1000);
         }
 
-        Quickshell.execDetached(["sh", "-lc", cmd])
-        root.visible = false
+        Quickshell.execDetached(["sh", "-lc", cmd]);
+        root.visible = false;
     }
 
     onVisibleChanged: {
         if (visible) {
-            view.resetPointerTracking()
+            view.resetPointerTracking();
             if (root.pendingAppsUpdate !== null) {
-                root.applyAppsUpdate(root.pendingAppsUpdate)
-                root.pendingAppsUpdate = null
+                root.applyAppsUpdate(root.pendingAppsUpdate);
+                root.pendingAppsUpdate = null;
             }
-            view.queryText = ""
-            root.results = root.allApps
+            view.queryText = "";
+            root.results = root.allApps;
             if (root.allApps.length > 0)
-                view.currentIndex = 0
-            view.focusSearch()
+                view.currentIndex = 0;
+            view.focusSearch();
         } else if (root.pendingAppsUpdate !== null) {
-            root.applyAppsUpdate(root.pendingAppsUpdate)
-            root.pendingAppsUpdate = null
+            root.applyAppsUpdate(root.pendingAppsUpdate);
+            root.pendingAppsUpdate = null;
         }
     }
 
     Component.onCompleted: {
-        appLoader.running = true
+        appLoader.running = true;
     }
 
     LauncherView {

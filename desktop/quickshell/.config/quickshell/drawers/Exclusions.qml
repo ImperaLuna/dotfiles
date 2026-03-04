@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 
+// qmllint disable uncreatable-type
 Scope {
     id: root
 
