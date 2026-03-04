@@ -12,9 +12,9 @@ Item {
     required property int cornerRadius
     required property int barCornerRadius
 
-    readonly property int barHeight: Math.max(24, Math.round(36 * resolutionScale))
-    readonly property int barPadding: Math.max(6, Math.round(12 * resolutionScale))
-    readonly property int sectionGap: Math.max(2, Math.round(4 * resolutionScale))
+    readonly property int barHeight: Math.max(20, Math.round(Metrics.barHeightBase * resolutionScale))
+    readonly property int barPadding: Math.max(6, Math.round(Metrics.barPaddingBase * resolutionScale))
+    readonly property int sectionGap: Math.max(2, Math.round(Metrics.sectionGapBase * resolutionScale))
 
     implicitHeight: barHeight
 
@@ -36,10 +36,12 @@ Item {
 
             Workspaces {
                 monitorName: root.screenModel.name
+                uiScale: root.resolutionScale
             }
 
             Scratchpad {
                 Layout.leftMargin: root.sectionGap
+                uiScale: root.resolutionScale
             }
 
             Item { Layout.fillWidth: true }

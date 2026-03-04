@@ -20,6 +20,7 @@ PanelWindow {
     }
 
     WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     focusable: false
 
@@ -32,6 +33,13 @@ PanelWindow {
     property int barCornerRadius: Math.max(1, Math.round(cornerRadius * barCornerFactor))
     property int inset: 0
     property color borderColor: Colors.base
+
+    Exclusions {
+        screenModel: root.screenModel
+        topReserved: root.inset + bar.implicitHeight
+        sideReserved: root.inset + root.borderWidth
+        bottomReserved: root.inset + root.borderWidth
+    }
 
     // Caelestia-like composition: one window that owns bar + border.
     // This makes future top-edge dashboard slide panels straightforward.

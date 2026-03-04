@@ -4,7 +4,7 @@ import "../theme"
 Text {
     color: Colors.text
     font.family: "JetBrainsMono Nerd Font"
-    font.pointSize: 10
+    font.pixelSize: 12
 
     property var now: new Date()
     text: Qt.formatDateTime(now, "hh:mm")

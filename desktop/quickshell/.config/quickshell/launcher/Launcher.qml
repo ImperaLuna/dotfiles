@@ -61,10 +61,23 @@ PanelWindow {
         )
     }
 
+    function sanitizeExec(execLine) {
+        if (!execLine) return ""
+
+        // Keep literal percent (%%) intact while stripping desktop entry field codes.
+        let cmd = execLine.replace(/%%/g, "__QS_LITERAL_PERCENT__")
+        cmd = cmd.replace(/%[A-Za-z]/g, "")
+        cmd = cmd.replace(/__QS_LITERAL_PERCENT__/g, "%")
+
+        // Normalize whitespace after placeholder removal.
+        return cmd.replace(/\s+/g, " ").trim()
+    }
+
     function launch(entry) {
-        // Strip .desktop field codes (%u %f %U %F etc.) before dispatching
-        const exec = entry.exec.replace(/%[uUfFdDnNickvm]/g, "").trim()
-        Hyprland.dispatch("exec " + exec)
+        const cmd = sanitizeExec(entry.exec ?? "")
+        if (!cmd) return
+
+        Quickshell.execDetached(["sh", "-lc", cmd])
         root.visible = false
     }
 

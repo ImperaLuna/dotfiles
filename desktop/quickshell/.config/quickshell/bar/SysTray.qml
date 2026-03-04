@@ -8,7 +8,7 @@ Row {
     Text {
         color: Colors.subtext0
         font.family: "JetBrainsMono Nerd Font"
-        font.pointSize: 10
+        font.pixelSize: 12
         text: "..."
     }
 }

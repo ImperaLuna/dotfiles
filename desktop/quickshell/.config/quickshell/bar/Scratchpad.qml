@@ -5,7 +5,9 @@ import "../theme"
 // Repeater over all workspaces — only the special workspace (id=-99) renders visibly.
 // JS iteration of Hyprland.workspaces is broken; Repeater delegates are reactive.
 Repeater {
+    id: scratchpadRepeater
     model: Hyprland.workspaces
+    property real uiScale: 1.0
 
     Rectangle {
         required property var modelData
@@ -16,8 +18,11 @@ Repeater {
 
         visible: modelData.id === -99 && (isActive || hasWindows)
 
-        implicitHeight: 22
-        implicitWidth: visible ? Math.max(label.implicitWidth + 16, 22) : 0
+        implicitHeight: Math.max(16, Math.round(Metrics.workspacePillHeightBase * scratchpadRepeater.uiScale))
+        implicitWidth: visible ? Math.max(
+            label.implicitWidth + Math.max(8, Math.round(Metrics.workspacePillPadXBase * scratchpadRepeater.uiScale)),
+            Math.round(Metrics.workspacePillMinWidthBase * scratchpadRepeater.uiScale)
+        ) : 0
         radius: implicitHeight / 2
         color: isActive ? Colors.mauve : Colors.surface0
 
@@ -27,12 +32,16 @@ Repeater {
 
         Text {
             id: label
-            anchors.centerIn: parent
+            anchors.fill: parent
             text: "~"
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            x: Metrics.scratchpadGlyphNudgeX
             color: isActive ? Colors.crust : Colors.subtext0
             font.family: "JetBrainsMono Nerd Font"
-            font.pointSize: 9
+            font.pixelSize: Math.max(9, Math.round(Metrics.workspaceFontBase * scratchpadRepeater.uiScale))
             font.bold: isActive
+            renderType: Text.NativeRendering
 
             Behavior on color {
                 ColorAnimation { duration: 120 }

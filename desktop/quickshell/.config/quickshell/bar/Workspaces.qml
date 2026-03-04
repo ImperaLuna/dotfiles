@@ -3,9 +3,11 @@ import Quickshell.Hyprland
 import "../theme"
 
 Row {
-    spacing: 4
+    id: root
+    spacing: Math.max(2, Math.round(Metrics.sectionGapBase * root.uiScale))
 
     property string monitorName: ""
+    property real uiScale: 1.0
 
     Repeater {
         model: Hyprland.workspaces
@@ -17,8 +19,11 @@ Row {
                   && modelData.monitor?.name === monitorName
                   && ((modelData.lastIpcObject?.windows ?? 0) > 0 || modelData.active)
 
-            height: 22
-            width: Math.max(label.implicitWidth + 16, 22)
+            height: Math.max(16, Math.round(Metrics.workspacePillHeightBase * root.uiScale))
+            width: Math.max(
+                label.implicitWidth + Math.max(8, Math.round(Metrics.workspacePillPadXBase * root.uiScale)),
+                Math.round(Metrics.workspacePillMinWidthBase * root.uiScale)
+            )
             radius: height / 2
 
             color: modelData.active ? Colors.blue : Colors.surface0
@@ -33,7 +38,7 @@ Row {
                 text: modelData.name
                 color: modelData.active ? Colors.crust : Colors.subtext0
                 font.family: "JetBrainsMono Nerd Font"
-                font.pointSize: 9
+                font.pixelSize: Math.max(9, Math.round(Metrics.workspaceFontBase * root.uiScale))
                 font.bold: modelData.active
 
                 Behavior on color {
