@@ -8,6 +8,26 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import "../theme"
 
+/*
+  Launcher interaction regression checklist (do not break):
+
+  1) Arrow-key navigation must not jump back to the last mouse-hovered row.
+  2) Mouse movement alone must not scroll/reposition the list viewport.
+  3) Hovering near top/bottom edges must not select partially clipped rows.
+  4) There must be a single effective selection source (`currentIndex`) and one
+     visible selected item at a time.
+  5) Keyboard navigation should continue from the currently selected row, including
+     rows selected by mouse interaction.
+  6) Search updates should keep selection behavior stable (reset to first result
+     for typed filter changes).
+
+  Current design constraints used to enforce this:
+  - Hover selection is gated by real pointer movement (`pointerActuallyMoved`).
+  - Hover selection is gated by full row visibility (`fullyVisibleInList`).
+  - List auto-scroll on highlight changes is disabled (`NoHighlightRange`).
+  - Explicit scrolling is keyboard-driven via `positionViewAtIndex`.
+*/
+
 PanelWindow {
     id: root
 
@@ -26,6 +46,7 @@ PanelWindow {
     property var pendingAppsUpdate: null
     property point lastPointerGlobalPos: Qt.point(-1, -1)
 
+    // Ignore hover changes caused only by delegate movement under a fixed cursor.
     function pointerActuallyMoved(globalPos) {
         if (globalPos.x !== root.lastPointerGlobalPos.x || globalPos.y !== root.lastPointerGlobalPos.y) {
             root.lastPointerGlobalPos = globalPos
@@ -161,6 +182,10 @@ PanelWindow {
         root.visible = false
     }
 
+    function shouldSelectFromHover(globalPos, fullyVisible) {
+        return pointerActuallyMoved(globalPos) && !listView.moving && fullyVisible
+    }
+
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     onVisibleChanged: {
@@ -256,6 +281,7 @@ PanelWindow {
                 keyNavigationWraps: false
                 preferredHighlightBegin: 0
                 preferredHighlightEnd: height
+                // Keep hover/currentIndex updates from auto-scrolling the viewport.
                 highlightRangeMode: ListView.NoHighlightRange
                 highlightFollowsCurrentItem: true
                 highlightMoveDuration: 90
@@ -359,6 +385,7 @@ PanelWindow {
                     required property var modelData
                     required property int index
 
+                    // Ignore partially clipped top/bottom rows for hover selection.
                     function fullyVisibleInList() {
                         const viewportY = appItem.y - listView.contentY
                         return viewportY >= 0 && (viewportY + appItem.height) <= listView.height
@@ -456,12 +483,12 @@ PanelWindow {
                         hoverEnabled: true
                         onEntered: {
                             const gpos = mapToGlobal(mouseX, mouseY)
-                            if (root.pointerActuallyMoved(gpos) && !listView.moving && appItem.fullyVisibleInList())
+                            if (root.shouldSelectFromHover(gpos, appItem.fullyVisibleInList()))
                                 listView.currentIndex = appItem.index
                         }
                         onPositionChanged: mouse => {
                             const gpos = mapToGlobal(mouse.x, mouse.y)
-                            if (root.pointerActuallyMoved(gpos) && !listView.moving && appItem.fullyVisibleInList())
+                            if (root.shouldSelectFromHover(gpos, appItem.fullyVisibleInList()))
                                 listView.currentIndex = appItem.index
                         }
                         onPressed: {
