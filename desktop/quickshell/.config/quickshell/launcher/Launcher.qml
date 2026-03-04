@@ -359,6 +359,11 @@ PanelWindow {
                     required property var modelData
                     required property int index
 
+                    function fullyVisibleInList() {
+                        const viewportY = appItem.y - listView.contentY
+                        return viewportY >= 0 && (viewportY + appItem.height) <= listView.height
+                    }
+
                     width: listView.width
                     height: 56
                     color: "transparent"
@@ -451,12 +456,12 @@ PanelWindow {
                         hoverEnabled: true
                         onEntered: {
                             const gpos = mapToGlobal(mouseX, mouseY)
-                            if (root.pointerActuallyMoved(gpos) && !listView.moving)
+                            if (root.pointerActuallyMoved(gpos) && !listView.moving && appItem.fullyVisibleInList())
                                 listView.currentIndex = appItem.index
                         }
                         onPositionChanged: mouse => {
                             const gpos = mapToGlobal(mouse.x, mouse.y)
-                            if (root.pointerActuallyMoved(gpos) && !listView.moving)
+                            if (root.pointerActuallyMoved(gpos) && !listView.moving && appItem.fullyVisibleInList())
                                 listView.currentIndex = appItem.index
                         }
                         onPressed: {
