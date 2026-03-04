@@ -22,6 +22,27 @@ PanelWindow {
 
     property var allApps: []
     property var results: []
+    property var pendingAppsUpdate: null
+
+    function moveSelection(direction) {
+        if (root.results.length <= 0)
+            return
+
+        if (!listView.activeFocus)
+            listView.forceActiveFocus()
+
+        let next = listView.currentIndex
+        if (next < 0) {
+            next = direction > 0 ? 0 : root.results.length - 1
+        } else if (direction > 0) {
+            next = Math.min(root.results.length - 1, next + 1)
+        } else {
+            next = Math.max(0, next - 1)
+        }
+
+        listView.currentIndex = next
+        listView.positionViewAtIndex(next, ListView.Contain)
+    }
 
     // ── App loading via Python helper ─────────────────────────────────────────
 
@@ -37,9 +58,11 @@ PanelWindow {
                 line = line.trim()
                 if (!line) return
                 try {
-                    root.allApps = JSON.parse(line)
-                    root.results = root.allApps
-                    if (root.visible) searchField.forceActiveFocus()
+                    const apps = JSON.parse(line)
+                    if (root.visible)
+                        root.pendingAppsUpdate = apps
+                    else
+                        root.applyAppsUpdate(apps)
                 } catch(e) {
                     console.warn("Launcher: failed to parse app list:", e)
                 }
@@ -59,6 +82,41 @@ PanelWindow {
             (app.name ?? "").toLowerCase().includes(q) ||
             (app.description ?? "").toLowerCase().includes(q)
         )
+    }
+
+    function refilterPreservingSelection(previousEntry) {
+        refilter()
+
+        if (results.length <= 0) {
+            listView.currentIndex = -1
+            return
+        }
+
+        if (previousEntry) {
+            const prevName = previousEntry.name ?? ""
+            const prevExec = previousEntry.exec ?? ""
+            const idx = results.findIndex(app =>
+                (app.name ?? "") === prevName && (app.exec ?? "") === prevExec
+            )
+            if (idx >= 0) {
+                listView.currentIndex = idx
+                listView.positionViewAtIndex(idx, ListView.Contain)
+                return
+            }
+        }
+
+        const clamped = Math.max(0, Math.min(listView.currentIndex, results.length - 1))
+        listView.currentIndex = clamped
+        listView.positionViewAtIndex(clamped, ListView.Contain)
+    }
+
+    function applyAppsUpdate(apps) {
+        const previousEntry = (listView.currentIndex >= 0 && listView.currentIndex < results.length)
+            ? results[listView.currentIndex]
+            : null
+
+        root.allApps = apps
+        root.refilterPreservingSelection(previousEntry)
     }
 
     function sanitizeExec(execLine) {
@@ -85,11 +143,18 @@ PanelWindow {
 
     onVisibleChanged: {
         if (visible) {
+            if (root.pendingAppsUpdate !== null) {
+                root.applyAppsUpdate(root.pendingAppsUpdate)
+                root.pendingAppsUpdate = null
+            }
             searchField.text = ""
             results = allApps
             if (allApps.length > 0) {
                 searchField.forceActiveFocus()
             }
+        } else if (root.pendingAppsUpdate !== null) {
+            root.applyAppsUpdate(root.pendingAppsUpdate)
+            root.pendingAppsUpdate = null
         }
     }
 
@@ -136,11 +201,20 @@ PanelWindow {
 
                     onTextChanged: root.refilter()
 
-                    Keys.onEscapePressed: root.visible = false
-                    Keys.onDownPressed:   listView.forceActiveFocus()
-                    Keys.onReturnPressed: {
-                        if (root.results.length > 0)
-                            root.launch(root.results[0])
+                    Keys.onUpPressed: root.moveSelection(-1)
+                    Keys.onDownPressed: root.moveSelection(1)
+
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Escape) {
+                            root.visible = false
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            if (root.results.length > 0)
+                                root.launch(root.results[0])
+                            event.accepted = true
+                        } else {
+                            event.accepted = false
+                        }
                     }
                 }
             }
@@ -153,19 +227,27 @@ PanelWindow {
 
                 model: root.results
                 clip: true
-                keyNavigationEnabled: true
-                keyNavigationWraps: true
+                keyNavigationEnabled: false
+                keyNavigationWraps: false
 
-                Keys.onEscapePressed: root.visible = false
-                Keys.onReturnPressed: {
-                    if (currentIndex >= 0 && currentIndex < root.results.length)
-                        root.launch(root.results[currentIndex])
-                }
                 Keys.onUpPressed: {
-                    if (currentIndex <= 0)
-                        searchField.forceActiveFocus()
-                    else
-                        decrementCurrentIndex()
+                    root.moveSelection(-1)
+                }
+                Keys.onDownPressed: {
+                    root.moveSelection(1)
+                }
+
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_Escape) {
+                        root.visible = false
+                        event.accepted = true
+                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                        if (currentIndex >= 0 && currentIndex < root.results.length)
+                            root.launch(root.results[currentIndex])
+                        event.accepted = true
+                    } else {
+                        event.accepted = false
+                    }
                 }
 
                 delegate: Rectangle {
