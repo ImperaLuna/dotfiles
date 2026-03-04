@@ -86,6 +86,18 @@ PanelWindow {
         )
     }
 
+    function refilterResetSelection() {
+        refilter()
+
+        if (results.length <= 0) {
+            listView.currentIndex = -1
+            return
+        }
+
+        listView.currentIndex = 0
+        listView.positionViewAtIndex(0, ListView.Beginning)
+    }
+
     function refilterPreservingSelection(previousEntry) {
         refilter()
 
@@ -152,6 +164,7 @@ PanelWindow {
             searchField.text = ""
             results = allApps
             if (allApps.length > 0) {
+                listView.currentIndex = 0
                 searchField.forceActiveFocus()
             }
         } else if (root.pendingAppsUpdate !== null) {
@@ -201,7 +214,7 @@ PanelWindow {
                     font.pixelSize: 14
                     font.family: "JetBrainsMono Nerd Font"
 
-                    onTextChanged: root.refilter()
+                    onTextChanged: root.refilterResetSelection()
 
                     Keys.onUpPressed: root.moveSelection(-1)
                     Keys.onDownPressed: root.moveSelection(1)
@@ -211,7 +224,9 @@ PanelWindow {
                             root.visible = false
                             event.accepted = true
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            if (root.results.length > 0)
+                            if (listView.currentIndex >= 0 && listView.currentIndex < root.results.length)
+                                root.launch(root.results[listView.currentIndex])
+                            else if (root.results.length > 0)
                                 root.launch(root.results[0])
                             event.accepted = true
                         } else {
@@ -230,6 +245,78 @@ PanelWindow {
                 clip: true
                 keyNavigationEnabled: false
                 keyNavigationWraps: false
+                preferredHighlightBegin: 0
+                preferredHighlightEnd: height
+                highlightRangeMode: ListView.ApplyRange
+                highlightFollowsCurrentItem: true
+                highlightMoveDuration: 90
+                highlightResizeDuration: 90
+
+                highlight: Rectangle {
+                    width: listView.width
+                    height: listView.currentItem ? listView.currentItem.height : 56
+                    radius: 6
+                    color: Colors.surface0
+                    opacity: listView.currentIndex >= 0 ? 1 : 0
+                }
+
+                add: Transition {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: 110
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        property: "scale"
+                        from: 0.98
+                        to: 1
+                        duration: 110
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                remove: Transition {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 1
+                        to: 0
+                        duration: 90
+                        easing.type: Easing.InCubic
+                    }
+                    NumberAnimation {
+                        property: "scale"
+                        from: 1
+                        to: 0.98
+                        duration: 90
+                        easing.type: Easing.InCubic
+                    }
+                }
+
+                move: Transition {
+                    NumberAnimation {
+                        property: "y"
+                        duration: 130
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                addDisplaced: Transition {
+                    NumberAnimation {
+                        property: "y"
+                        duration: 130
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                displaced: Transition {
+                    NumberAnimation {
+                        property: "y"
+                        duration: 130
+                        easing.type: Easing.OutCubic
+                    }
+                }
 
                 Keys.onUpPressed: {
                     root.moveSelection(-1)
@@ -258,10 +345,8 @@ PanelWindow {
 
                     width: listView.width
                     height: 56
-                    color: ListView.isCurrentItem ? Colors.surface0 : "transparent"
+                    color: "transparent"
                     radius: 6
-
-                    Behavior on color { ColorAnimation { duration: 80 } }
 
                     Row {
                         anchors {
