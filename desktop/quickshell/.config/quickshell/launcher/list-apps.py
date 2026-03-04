@@ -75,7 +75,7 @@ PIXMAP_DIRS = [
 ]
 
 CACHE_PATH = os.path.expanduser("~/.cache/quickshell/apps-cache.json")
-CACHE_VERSION = 5
+CACHE_VERSION = 6
 USAGE_PATH = os.path.expanduser("~/.local/state/quickshell/launcher-usage.json")
 FALLBACK_POLL_SECONDS = 2.0
 EVENT_DEBOUNCE_SECONDS = 0.25
@@ -270,6 +270,7 @@ def build_apps():
                         "icon_name": entry.get("Icon", ""),
                         "icon": resolve_icon(entry.get("Icon", "")),
                         "exec": entry.get("Exec", ""),
+                        "terminal": entry.get("Terminal", "false").strip().lower() == "true",
                         "description": entry.get("Comment", ""),
                         "launch_count": launch_count,
                         "launch_last": launch_last,

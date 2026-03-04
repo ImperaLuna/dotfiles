@@ -24,6 +24,7 @@ PanelWindow {
     property var pendingAppsUpdate: null
 
     readonly property string scriptPath: Qt.resolvedUrl("list-apps.py").toString().replace(/^file:\/\//, "")
+    readonly property string runtimeScriptPath: Qt.resolvedUrl("runtime-config.py").toString().replace(/^file:\/\//, "")
 
     Process {
         id: appLoader
@@ -45,6 +46,11 @@ PanelWindow {
                 }
             }
         }
+    }
+
+    Process {
+        id: runtimeSync
+        command: ["python3", root.runtimeScriptPath, "--sync-hypr-terminal"]
     }
 
     function moveSelection(direction, keepInputFocus) {
@@ -134,7 +140,13 @@ PanelWindow {
             entry.launch_last = Math.floor(Date.now() / 1000);
         }
 
-        Quickshell.execDetached(["sh", "-lc", cmd]);
+        if (Boolean(entry.terminal ?? false)) {
+            const wrapped = "if python3 " + JSON.stringify(root.runtimeScriptPath) + " --launch-terminal -- sh -lc "
+                + JSON.stringify(cmd) + "; then :; else echo 'Launcher: terminal app skipped (runtime terminal not configured)' >&2; fi";
+            Quickshell.execDetached(["sh", "-lc", wrapped]);
+        } else {
+            Quickshell.execDetached(["sh", "-lc", cmd]);
+        }
         root.visible = false;
     }
 
@@ -158,6 +170,7 @@ PanelWindow {
 
     Component.onCompleted: {
         appLoader.running = true;
+        runtimeSync.running = true;
     }
 
     LauncherView {
