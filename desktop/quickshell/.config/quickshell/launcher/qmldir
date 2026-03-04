@@ -1,2 +1,3 @@
 module launcher
 Launcher 1.0 Launcher.qml
+internal LauncherView LauncherView.qml
