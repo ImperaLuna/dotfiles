@@ -1,4 +1,5 @@
 .pragma library
+.import "CalculatorLogic.js" as Calc
 
 function scoreField(field, needle, base, allowSubsequence) {
     if (!field)
@@ -82,6 +83,14 @@ function filterApps(allApps, queryText) {
     })
 
     return scored.map(e => e.app)
+}
+
+function buildResults(allApps, queryText) {
+    const filtered = filterApps(allApps, queryText)
+    const calcEntry = Calc.calculateExpression(queryText)
+    if (calcEntry)
+        return [calcEntry].concat(filtered)
+    return filtered
 }
 
 function sanitizeExec(execLine) {

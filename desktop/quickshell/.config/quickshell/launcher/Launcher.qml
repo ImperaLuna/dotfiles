@@ -68,7 +68,7 @@ PanelWindow {
     }
 
     function refilter() {
-        root.results = Logic.filterApps(root.allApps, view.queryText);
+        root.results = Logic.buildResults(root.allApps, view.queryText);
     }
 
     function refilterResetSelection() {
@@ -116,6 +116,14 @@ PanelWindow {
     }
 
     function launch(entry) {
+        if ((entry.kind ?? "") === "calculation") {
+            const value = (entry.calc_value ?? "").trim();
+            if (value !== "")
+                Quickshell.execDetached(["sh", "-lc", "printf %s " + JSON.stringify(value) + " | wl-copy"]);
+            root.visible = false;
+            return;
+        }
+
         const cmd = Logic.sanitizeExec(entry.exec ?? "");
         if (!cmd)
             return;
@@ -138,8 +146,8 @@ PanelWindow {
                 root.pendingAppsUpdate = null;
             }
             view.queryText = "";
-            root.results = root.allApps;
-            if (root.allApps.length > 0)
+            root.results = Logic.buildResults(root.allApps, view.queryText);
+            if (root.results.length > 0)
                 view.currentIndex = 0;
             view.focusSearch();
         } else if (root.pendingAppsUpdate !== null) {

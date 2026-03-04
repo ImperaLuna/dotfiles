@@ -116,7 +116,7 @@ Item {
                         leftMargin: 12
                         rightMargin: 12
                     }
-                    placeholderText: "Search applications…"
+                    placeholderText: "Search applications or type math…"
                     background: null
                     color: Colors.text
                     placeholderTextColor: Colors.overlay0
