@@ -1,5 +1,7 @@
 import QtQuick
 import "./"
+import "../notifications" as Notifications
+import "../powermenu" as PowerMenu
 
 Item {
     id: root
@@ -11,16 +13,16 @@ Item {
     required property int barCornerRadius
     required property int borderWidth
     required property color chromeColor
-    required property bool sessionOpen
+    required property bool powerMenuOpen
     required property bool notificationOpen
 
-    signal toggleSession()
-    signal closeSession()
+    signal togglePowerMenu()
+    signal closePowerMenu()
     signal toggleNotification()
     signal closeNotification()
 
     readonly property alias bar: bar
-    readonly property alias session: session
+    readonly property alias powerMenu: powerMenu
     readonly property alias notifications: notifications
 
     anchors.fill: parent
@@ -34,9 +36,9 @@ Item {
         cornerRadius: root.cornerRadius
         barCornerRadius: root.barCornerRadius
         barColor: root.chromeColor
-        sessionOpen: root.sessionOpen
+        powerMenuOpen: root.powerMenuOpen
         notificationOpen: root.notificationOpen
-        onToggleSession: root.toggleSession()
+        onTogglePowerMenu: root.togglePowerMenu()
         onToggleNotification: root.toggleNotification()
 
         anchors {
@@ -49,10 +51,10 @@ Item {
         }
     }
 
-    SessionDrawer {
-        id: session
-        open: root.sessionOpen
-        onCloseRequested: root.closeSession()
+    PowerMenu.Wrapper {
+        id: powerMenu
+        open: root.powerMenuOpen
+        onCloseRequested: root.closePowerMenu()
         anchors {
             right: parent.right
             rightMargin: root.inset + root.borderWidth
@@ -60,7 +62,7 @@ Item {
         }
     }
 
-    NotificationDrawer {
+    Notifications.Wrapper {
         id: notifications
         open: root.notificationOpen
         onCloseRequested: root.closeNotification()

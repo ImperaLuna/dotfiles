@@ -3,6 +3,8 @@ import Quickshell.Wayland
 import QtQuick
 import QtQuick.Shapes
 import "./"
+import "../notifications" as Notifications
+import "../powermenu" as PowerMenu
 import "../theme"
 
 // qmllint disable uncreatable-type
@@ -35,16 +37,23 @@ PanelWindow {
     property int barCornerRadius: Math.max(1, Math.round(cornerRadius * barCornerFactor))
     property int inset: 0
     property color chromeColor: Colors.test
-    property bool sessionOpen: false
+    property bool powerMenuOpen: false
     property bool notificationOpen: false
-    readonly property real rightPanelWidth: Math.max(panels.session.width, panels.notifications.visible ? panels.notifications.width : 0)
+    readonly property real rightPanelWidth: Math.max(panels.powerMenu.width, panels.notifications.visible ? panels.notifications.width : 0)
+
+    ChromeGeometry {
+        id: geometry
+        inset: root.inset
+        borderWidth: root.borderWidth
+        barHeight: panels.bar.implicitHeight
+        rightPanelWidth: root.rightPanelWidth
+        windowWidth: root.width
+        windowHeight: root.height
+    }
 
     Exclusions {
         screenModel: root.screenModel
-        topReserved: root.inset + panels.bar.implicitHeight
-        leftReserved: root.inset + root.borderWidth
-        rightReserved: root.inset + root.borderWidth
-        bottomReserved: root.inset + root.borderWidth
+        geometry: geometry
     }
 
     // Caelestia-like composition: one window that owns bar + border.
@@ -55,18 +64,18 @@ PanelWindow {
         height: root.height
 
         Region {
-            x: root.inset + root.borderWidth
-            y: root.inset + panels.bar.implicitHeight
-            width: Math.max(0, root.width - (root.inset + root.borderWidth) * 2 - root.rightPanelWidth)
-            height: Math.max(0, root.height - root.inset - panels.bar.implicitHeight - root.borderWidth)
+            x: geometry.interiorX
+            y: geometry.interiorY
+            width: geometry.interiorWidth
+            height: geometry.interiorHeight
             intersection: Intersection.Subtract
         }
 
         Region {
-            x: root.inset
-            y: root.inset
-            width: Math.max(0, root.width - root.inset * 2)
-            height: panels.bar.implicitHeight
+            x: geometry.barStripX
+            y: geometry.barStripY
+            width: geometry.barStripWidth
+            height: geometry.barStripHeight
             intersection: Intersection.Combine
         }
     }
@@ -82,10 +91,10 @@ PanelWindow {
         barCornerRadius: root.barCornerRadius
         borderWidth: root.borderWidth
         chromeColor: root.chromeColor
-        sessionOpen: root.sessionOpen
+        powerMenuOpen: root.powerMenuOpen
         notificationOpen: root.notificationOpen
-        onToggleSession: root.sessionOpen = !root.sessionOpen
-        onCloseSession: root.sessionOpen = false
+        onTogglePowerMenu: root.powerMenuOpen = !root.powerMenuOpen
+        onClosePowerMenu: root.powerMenuOpen = false
         onToggleNotification: root.notificationOpen = !root.notificationOpen
         onCloseNotification: root.notificationOpen = false
     }
@@ -95,23 +104,23 @@ PanelWindow {
         z: 1.5
 
         anchors.fill: parent
-        anchors.margins: root.inset + root.borderWidth
+        anchors.margins: root.inset + geometry.borderWidth
         preferredRendererType: Shape.CurveRenderer
 
-        SessionBackground {
-            wrapper: panels.session
+        PowerMenu.Background {
+            wrapper: panels.powerMenu
             rounding: Math.round(root.cornerRadius * 1.8)
 
             startX: panelBackgrounds.width
             startY: (panelBackgrounds.height - wrapper.height) / 2 - rounding
         }
 
-        NotificationBackground {
+        Notifications.Background {
             wrapper: panels.notifications
             rounding: Math.round(root.cornerRadius * 1.5)
 
             startX: panelBackgrounds.width
-            startY: panels.notifications.y - (root.inset + root.borderWidth)
+            startY: panels.notifications.y - (root.inset + geometry.borderWidth)
         }
     }
 
@@ -122,10 +131,8 @@ PanelWindow {
         anchors.fill: parent
         anchors.margins: root.inset
 
-        borderWidth: root.borderWidth
+        geometry: geometry
         cornerRadius: root.cornerRadius
-        barHeight: panels.bar.implicitHeight
-        inset: root.inset
         borderColor: root.chromeColor
     }
 }

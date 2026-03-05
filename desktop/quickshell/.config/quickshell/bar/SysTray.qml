@@ -6,9 +6,9 @@ Item {
     id: root
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
-    property bool sessionOpen: false
+    property bool powerMenuOpen: false
     property bool notificationOpen: false
-    signal toggleSession()
+    signal togglePowerMenu()
     signal triggerTest()
 
     Row {
@@ -43,7 +43,7 @@ Item {
         }
 
         Item {
-            id: sessionButton
+            id: powerMenuButton
             width: icon.implicitHeight + 2
             height: icon.implicitHeight
 
@@ -52,7 +52,7 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: root.toggleSession()
+                onClicked: root.togglePowerMenu()
             }
 
             Text {
@@ -60,7 +60,7 @@ Item {
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: -1
                 text: "power_settings_new"
-                color: root.sessionOpen ? Colors.maroon : Colors.red
+                color: root.powerMenuOpen ? Colors.maroon : Colors.red
                 opacity: clickArea.containsMouse ? 0.85 : 1.0
                 font.family: Fonts.symbols
                 font.pixelSize: 18

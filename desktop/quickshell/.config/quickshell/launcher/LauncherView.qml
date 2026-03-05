@@ -105,7 +105,7 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: searchHeight
+                implicitHeight: viewRoot.searchHeight
                 color: Colors.mantle
                 radius: 8
 
@@ -391,7 +391,7 @@ Item {
                     }
 
                     width: listView.width
-                    height: rowHeight
+                    height: viewRoot.rowHeight
                     color: "transparent"
                     radius: 6
 

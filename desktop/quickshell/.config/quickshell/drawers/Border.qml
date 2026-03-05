@@ -6,10 +6,8 @@ import QtQuick.Effects
 Item {
     id: root
 
-    required property int borderWidth
+    required property var geometry
     required property int cornerRadius
-    required property int barHeight
-    required property int inset
     required property color borderColor
 
     anchors.fill: parent
@@ -39,10 +37,10 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            anchors.leftMargin: root.borderWidth
-            anchors.rightMargin: root.borderWidth
-            anchors.bottomMargin: root.borderWidth
-            anchors.topMargin: root.barHeight
+            anchors.leftMargin: root.geometry.borderWidth
+            anchors.rightMargin: root.geometry.borderWidth
+            anchors.bottomMargin: root.geometry.borderWidth
+            anchors.topMargin: root.geometry.barHeight
             radius: Math.max(0, root.cornerRadius)
             color: "black"
         }

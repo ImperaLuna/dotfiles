@@ -6,17 +6,14 @@ Scope {
     id: root
 
     required property var screenModel
-    required property int topReserved
-    required property int leftReserved
-    required property int rightReserved
-    required property int bottomReserved
+    required property var geometry
 
     // Top reserved area (bar region)
     PanelWindow {
         screen: root.screenModel
         color: "transparent"
         implicitHeight: 1
-        exclusiveZone: root.topReserved
+        exclusiveZone: root.geometry.topReserved
         anchors {
             top: true
             left: true
@@ -32,7 +29,7 @@ Scope {
         screen: root.screenModel
         color: "transparent"
         implicitWidth: 1
-        exclusiveZone: root.leftReserved
+        exclusiveZone: root.geometry.leftReserved
         anchors {
             top: true
             bottom: true
@@ -48,7 +45,7 @@ Scope {
         screen: root.screenModel
         color: "transparent"
         implicitWidth: 1
-        exclusiveZone: root.rightReserved
+        exclusiveZone: root.geometry.rightReserved
         anchors {
             top: true
             bottom: true
@@ -64,7 +61,7 @@ Scope {
         screen: root.screenModel
         color: "transparent"
         implicitHeight: 1
-        exclusiveZone: root.bottomReserved
+        exclusiveZone: root.geometry.bottomReserved
         anchors {
             bottom: true
             left: true

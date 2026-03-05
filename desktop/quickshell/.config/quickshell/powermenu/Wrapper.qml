@@ -32,35 +32,35 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 12
 
-        SessionButton {
+        PowerButton {
             Layout.alignment: Qt.AlignHCenter
             icon: "power_settings_new"
             title: "Shutdown"
             command: "systemctl poweroff"
         }
 
-        SessionButton {
+        PowerButton {
             Layout.alignment: Qt.AlignHCenter
             icon: "lock"
             title: "Lock"
             command: "if command -v hyprlock >/dev/null 2>&1; then hyprlock; else loginctl lock-session; fi"
         }
 
-        SessionButton {
+        PowerButton {
             Layout.alignment: Qt.AlignHCenter
             icon: "cached"
             title: "Reboot"
             command: "systemctl reboot"
         }
 
-        SessionButton {
+        PowerButton {
             Layout.alignment: Qt.AlignHCenter
             icon: "downloading"
             title: "Hibernate"
             command: "loginctl lock-session; sleep 1; systemctl suspend-then-hibernate || systemctl hibernate || systemctl suspend"
         }
 
-        SessionButton {
+        PowerButton {
             Layout.alignment: Qt.AlignHCenter
             icon: "logout"
             title: "Logout"
@@ -68,7 +68,7 @@ Item {
         }
     }
 
-    component SessionButton: Item {
+    component PowerButton: Item {
         id: button
 
         required property string icon

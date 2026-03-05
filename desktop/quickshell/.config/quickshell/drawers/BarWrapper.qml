@@ -16,9 +16,9 @@ Item {
     readonly property int barHeight: Math.max(20, Math.round(Metrics.barHeightBase * resolutionScale))
     readonly property int barPadding: Math.max(6, Math.round(Metrics.barPaddingBase * resolutionScale))
     readonly property int sectionGap: Math.max(2, Math.round(Metrics.sectionGapBase * resolutionScale))
-    property bool sessionOpen: false
+    property bool powerMenuOpen: false
     property bool notificationOpen: false
-    signal toggleSession()
+    signal togglePowerMenu()
     signal toggleNotification()
 
     implicitHeight: barHeight
@@ -60,9 +60,9 @@ Item {
 
             SysTray {
                 Layout.alignment: Qt.AlignVCenter
-                sessionOpen: root.sessionOpen
+                powerMenuOpen: root.powerMenuOpen
                 notificationOpen: root.notificationOpen
-                onToggleSession: root.toggleSession()
+                onTogglePowerMenu: root.togglePowerMenu()
                 onTriggerTest: root.toggleNotification()
             }
         }
