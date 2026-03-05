@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import QtQuick
 import "./drawers"
 import "./launcher"
 import "./notifications"
@@ -10,9 +11,57 @@ import "./notifications"
 ShellRoot {
     id: root
 
-    Launcher { id: launcher }
+    readonly property string runtimeScriptPath: Qt.resolvedUrl("./launcher/runtime-config.py").toString().replace(/^file:\/\//, "")
+
+    QtObject {
+        id: uiSettings
+        property real scale: 1.0
+    }
+
+    property bool uiScaleLoaded: false
+
+    Launcher {
+        id: launcher
+        globalUiScale: uiSettings.scale
+    }
     NotificationService { id: notifService }
     PlacementConfig { id: notifPlacement }
+
+    Process {
+        id: uiScaleLoad
+        command: ["python3", root.runtimeScriptPath, "--get-ui-scale"]
+
+        stdout: SplitParser {
+            onRead: function (line) {
+                const parsed = Number(line.trim());
+                if (!Number.isFinite(parsed))
+                    return;
+                uiSettings.scale = Math.max(0.75, Math.min(2.5, parsed));
+            }
+        }
+
+        onRunningChanged: {
+            if (!running)
+                root.uiScaleLoaded = true;
+        }
+    }
+
+    Timer {
+        id: uiScaleSaveDebounce
+        interval: 160
+        repeat: false
+        onTriggered: Quickshell.execDetached(["python3", root.runtimeScriptPath, "--set-ui-scale", String(uiSettings.scale)])
+    }
+
+    Connections {
+        target: uiSettings
+        function onScaleChanged() {
+            if (root.uiScaleLoaded)
+                uiScaleSaveDebounce.restart();
+        }
+    }
+
+    Component.onCompleted: uiScaleLoad.running = true
 
     function isNotificationHost(screenModel) {
         const mode = notifPlacement.normalizedMode();
@@ -66,6 +115,7 @@ ShellRoot {
             required property var modelData
             screenModel: modelData
             screen: modelData
+            uiSettings: uiSettings
             notificationService: notifService
             notificationPlacement: notifPlacement
             allScreens: Quickshell.screens

@@ -10,6 +10,7 @@ Item {
 
     property bool open: false
     required property real uiScale
+    required property var uiSettings
     required property var placementConfig
     required property var allScreens
     signal closeRequested()
@@ -56,7 +57,7 @@ Item {
             Layout.fillWidth: true
 
             Text {
-                text: "Settings (Placeholder)"
+                text: "Settings"
                 color: Colors.text
                 font.family: Fonts.text
                 font.pixelSize: Math.round(13 * root.uiScale)
@@ -76,6 +77,58 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.closeRequested()
+                }
+            }
+        }
+
+        Text {
+            text: "Global UI Scale"
+            color: Colors.subtext1
+            font.family: Fonts.text
+            font.pixelSize: Math.round(11 * root.uiScale)
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Math.round(8 * root.uiScale)
+
+            ScaleButton {
+                text: "-"
+                active: false
+                onClicked: {
+                    if (!root.uiSettings)
+                        return;
+                    const value = Number(root.uiSettings.scale ?? 1.0) - 0.05;
+                    root.uiSettings.scale = Math.max(0.75, Math.min(2.5, value));
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: Math.round(Number(root.uiSettings?.scale ?? 1.0) * 100) + "%"
+                color: Colors.text
+                font.family: Fonts.text
+                font.pixelSize: Math.round(11 * root.uiScale)
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            ScaleButton {
+                text: "Reset"
+                active: false
+                onClicked: {
+                    if (root.uiSettings)
+                        root.uiSettings.scale = 1.0;
+                }
+            }
+
+            ScaleButton {
+                text: "+"
+                active: false
+                onClicked: {
+                    if (!root.uiSettings)
+                        return;
+                    const value = Number(root.uiSettings.scale ?? 1.0) + 0.05;
+                    root.uiSettings.scale = Math.max(0.75, Math.min(2.5, value));
                 }
             }
         }
@@ -197,6 +250,35 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: screenButton.clicked()
+        }
+    }
+
+    component ScaleButton: Rectangle {
+        id: scaleButton
+        required property string text
+        required property bool active
+        signal clicked()
+
+        radius: 8
+        implicitWidth: scaleLabel.implicitWidth + Math.round(14 * root.uiScale)
+        implicitHeight: Math.round(24 * root.uiScale)
+        color: scaleButton.active ? Colors.blue : Colors.surface1
+
+        Text {
+            id: scaleLabel
+            anchors.centerIn: parent
+            text: scaleButton.text
+            color: scaleButton.active ? Colors.crust : Colors.text
+            font.family: Fonts.text
+            font.pixelSize: Math.round(10 * root.uiScale)
+            font.bold: scaleButton.active
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: scaleButton.clicked()
         }
     }
 }

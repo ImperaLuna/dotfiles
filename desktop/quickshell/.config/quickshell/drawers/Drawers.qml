@@ -12,6 +12,7 @@ PanelWindow {
     id: root
 
     required property var screenModel
+    required property var uiSettings
     required property var notificationService
     required property var notificationPlacement
     required property var allScreens
@@ -32,8 +33,10 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     focusable: false
 
-    // Keep proportions consistent across mixed-resolution monitors.
-    property real resolutionScale: Math.max(0.75, Math.min(1.5, screenModel.height / 1080))
+    // Keep proportions consistent across mixed-resolution monitors, with a global user multiplier.
+    // Clamp base monitor factor first, then apply global scale so high-res screens do not hit an early cap.
+    readonly property real monitorScale: Math.max(0.75, Math.min(1.5, screenModel.height / 1080))
+    property real resolutionScale: Math.max(0.5, Math.min(4.0, monitorScale * Number(uiSettings?.scale ?? 1.0)))
     property int borderWidth: Math.max(1, Math.round(8 * resolutionScale))
     property int cornerRadius: Math.max(1, Math.round(12 * resolutionScale))
     // Lower = sharper corner attack angle, higher = rounder.
@@ -98,6 +101,7 @@ PanelWindow {
         z: 2
 
         screenModel: root.screenModel
+        uiSettings: root.uiSettings
         notificationService: root.notificationService
         notificationPlacement: root.notificationPlacement
         allScreens: root.allScreens

@@ -19,8 +19,7 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
     property real uiScale: 1.0
-    // Fine-tune launcher size without changing base token values.
-    property real scaleBoost: 2.0
+    property real globalUiScale: 1.0
     implicitWidth: Math.round(Metrics.launcherWidthBase * uiScale)
     implicitHeight: view.maxHeight
 
@@ -175,7 +174,8 @@ PanelWindow {
         const pixelFactor = Math.max(1.0, dpr, dpiFactor, hyprScale);
         const effectiveHeight = screenHeight * pixelFactor;
         const baseScale = Math.max(0.75, Math.min(2.0, effectiveHeight / 1080));
-        return Math.max(0.75, Math.min(4.0, baseScale * scaleBoost));
+        const globalFactor = Math.max(0.75, Math.min(2.5, Number(globalUiScale ?? 1.0)));
+        return Math.max(0.75, Math.min(4.0, baseScale * globalFactor));
     }
 
     function syncToFocusedScreen() {
@@ -190,6 +190,11 @@ PanelWindow {
                 return;
             }
         }
+    }
+
+    onGlobalUiScaleChanged: {
+        if (visible)
+            uiScale = computeUiScale();
     }
 
     onVisibleChanged: {

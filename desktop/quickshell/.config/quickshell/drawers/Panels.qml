@@ -8,6 +8,7 @@ Item {
     id: root
 
     required property var screenModel
+    required property var uiSettings
     required property var notificationService
     required property var notificationPlacement
     required property var allScreens
@@ -91,6 +92,7 @@ Item {
         id: settings
         open: root.settingsOpen
         uiScale: root.resolutionScale
+        uiSettings: root.uiSettings
         placementConfig: root.notificationPlacement
         allScreens: root.allScreens
         onCloseRequested: root.closeSettings()
