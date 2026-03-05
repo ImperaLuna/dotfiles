@@ -189,13 +189,13 @@ Rectangle {
             implicitWidth: Math.round(94 * root.notifUiScale)
             implicitHeight: Math.round(24 * root.notifUiScale)
             radius: Math.round(12 * root.notifUiScale)
-            color: root.notifHasPrimaryAction ? Colors.surface2 : Colors.surface1
+            color: root.notifHasPrimaryAction ? Colors.blue : Colors.surface1
             opacity: root.notifHasPrimaryAction ? 1 : 0.6
 
             Text {
                 anchors.centerIn: parent
-                text: "Go To App"
-                color: Colors.text
+                text: "Open"
+                color: root.notifHasPrimaryAction ? Colors.base : Colors.text
                 font.family: Fonts.text
                 font.pixelSize: Math.round(11 * root.notifUiScale)
             }
@@ -213,12 +213,12 @@ Rectangle {
             implicitWidth: Math.round(62 * root.notifUiScale)
             implicitHeight: Math.round(24 * root.notifUiScale)
             radius: Math.round(12 * root.notifUiScale)
-            color: Colors.surface2
+            color: Colors.red
 
             Text {
                 anchors.centerIn: parent
                 text: "Close"
-                color: Colors.text
+                color: Colors.base
                 font.family: Fonts.text
                 font.pixelSize: Math.round(11 * root.notifUiScale)
             }

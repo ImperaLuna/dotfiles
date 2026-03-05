@@ -117,13 +117,84 @@ QtObject {
         if (!state)
             return false;
 
-        const desktopEntry = state.desktopEntry || "";
-        if (desktopEntry.length > 0) {
-            Quickshell.execDetached(["gtk-launch", desktopEntry]);
-            return true;
-        }
+        const desktopEntry = String(state.desktopEntry || "").trim();
+        const appName = String(state.appName || "").trim();
+        if (desktopEntry.length === 0 && appName.length === 0)
+            return false;
 
-        return false;
+        const focusOrLaunchPy = `
+import json
+import re
+import subprocess
+import sys
+
+desktop = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
+app_name = (sys.argv[2] if len(sys.argv) > 2 else "").strip()
+
+def norm(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", (value or "").lower())
+
+desktop_stem = re.sub(r"\\.desktop$", "", desktop.lower())
+tokens = {norm(desktop_stem), norm(app_name)}
+tokens.discard("")
+
+if "discord" in tokens:
+    tokens.update([norm("discord"), norm("discordcanary"), norm("vesktop")])
+
+try:
+    clients = json.loads(subprocess.check_output(["hyprctl", "clients", "-j"], text=True))
+except Exception:
+    clients = []
+
+best = None
+best_score = 0
+for client in clients:
+    address = client.get("address", "")
+    if not address:
+        continue
+
+    cls = norm(client.get("class", ""))
+    icls = norm(client.get("initialClass", ""))
+    title = norm(client.get("title", ""))
+    score = 0
+
+    for token in tokens:
+        if cls == token:
+            score = max(score, 220)
+        if icls == token:
+            score = max(score, 210)
+        if token in cls:
+            score = max(score, 160)
+        if token in icls:
+            score = max(score, 150)
+        if token in title:
+            score = max(score, 80)
+
+    if score > best_score:
+        best_score = score
+        best = client
+
+if best and best_score >= 150:
+    ws = best.get("workspace") or {}
+    wsid = ws.get("id", 0)
+    try:
+        wsid = int(wsid)
+    except Exception:
+        wsid = 0
+    if wsid > 0:
+        subprocess.run(["hyprctl", "dispatch", "workspace", str(wsid)], check=False)
+    subprocess.run(["hyprctl", "dispatch", "focuswindow", f"address:{best['address']}"], check=False)
+    sys.exit(0)
+
+if desktop:
+    subprocess.run(["gtk-launch", desktop], check=False)
+    sys.exit(0)
+
+sys.exit(1)
+`;
+
+        Quickshell.execDetached(["python3", "-c", focusOrLaunchPy, desktopEntry, appName]);
+        return true;
     }
 
     function updateState(state) {
@@ -196,10 +267,14 @@ QtObject {
             return;
 
         const state = states[index];
-        if (tryInvokePrimaryNotificationAction(state))
+        const desktopEntry = String(state?.desktopEntry || "").trim();
+        const appName = String(state?.appName || "").trim();
+        if (desktopEntry.length > 0 || appName.length > 0) {
+            launchFromState(state);
             return;
+        }
 
-        launchFromState(state);
+        tryInvokePrimaryNotificationAction(state);
     }
 
     function setHovered(index, hovered) {
