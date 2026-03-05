@@ -124,9 +124,11 @@ QtObject {
 
         const focusOrLaunchPy = `
 import json
+import os
 import re
 import subprocess
 import sys
+from pathlib import Path
 
 desktop = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
 app_name = (sys.argv[2] if len(sys.argv) > 2 else "").strip()
@@ -138,8 +140,10 @@ desktop_stem = re.sub(r"\\.desktop$", "", desktop.lower())
 tokens = {norm(desktop_stem), norm(app_name)}
 tokens.discard("")
 
-if "discord" in tokens:
-    tokens.update([norm("discord"), norm("discordcanary"), norm("vesktop")])
+# if "discord" in tokens:
+#     tokens.update([norm("discord"), norm("discordcanary"), norm("vesktop")])
+# if "whatsapp" in tokens or "zapzap" in tokens:
+#     tokens.update([norm("whatsapp"), norm("zapzap")])
 
 try:
     clients = json.loads(subprocess.check_output(["hyprctl", "clients", "-j"], text=True))
@@ -188,6 +192,54 @@ if best and best_score >= 150:
 
 if desktop:
     subprocess.run(["gtk-launch", desktop], check=False)
+    sys.exit(0)
+
+def infer_desktop_entry() -> str:
+    # Resolve an app desktop entry from installed .desktop files when
+    # notifications do not provide desktopEntry.
+    token_list = [t for t in tokens if t]
+    if not token_list:
+        return ""
+
+    app_dirs = []
+    data_home = Path.home() / ".local" / "share" / "applications"
+    app_dirs.append(data_home)
+    xdg_data_dirs = os.environ.get("XDG_DATA_DIRS", "/usr/local/share:/usr/share").split(":")
+    for base in xdg_data_dirs:
+        if base:
+            app_dirs.append(Path(base) / "applications")
+
+    best_stem = ""
+    best_score = 0
+
+    for directory in app_dirs:
+        if not directory.is_dir():
+            continue
+        try:
+            entries = directory.glob("*.desktop")
+        except Exception:
+            continue
+
+        for entry in entries:
+            stem = entry.stem.lower()
+            score = 0
+            for token in token_list:
+                if stem == token:
+                    score = max(score, 220)
+                elif stem.startswith(token):
+                    score = max(score, 180)
+                elif token in stem:
+                    score = max(score, 140)
+
+            if score > best_score:
+                best_score = score
+                best_stem = entry.stem
+
+    return best_stem if best_score >= 140 else ""
+
+desktop_inferred = infer_desktop_entry()
+if desktop_inferred:
+    subprocess.run(["gtk-launch", desktop_inferred], check=False)
     sys.exit(0)
 
 sys.exit(1)
@@ -284,14 +336,15 @@ sys.exit(1)
             return;
 
         const state = states[index];
+        // Prefer the sender-provided default action (open conversation, focus chat, etc.)
+        // before our local fallback focus/launch heuristic.
+        if (tryInvokePrimaryNotificationAction(state))
+            return;
+
         const desktopEntry = String(state?.desktopEntry || "").trim();
         const appName = String(state?.appName || "").trim();
-        if (desktopEntry.length > 0 || appName.length > 0) {
+        if (desktopEntry.length > 0 || appName.length > 0)
             launchFromState(state);
-            return;
-        }
-
-        tryInvokePrimaryNotificationAction(state);
     }
 
     function setHovered(index, hovered) {
@@ -350,7 +403,9 @@ sys.exit(1)
     readonly property NotificationServer server: NotificationServer {
         id: server
 
-        keepOnReload: false
+        // Keep DBus ownership stable during quickshell config reloads.
+        // Some apps (e.g. ZapZap) crash if org.freedesktop.Notifications disappears briefly.
+        keepOnReload: true
         actionsSupported: true
         bodyHyperlinksSupported: true
         bodyImagesSupported: true

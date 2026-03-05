@@ -12,6 +12,19 @@ qs
 qs -c <name>
 ```
 
+## Notifications Bootstrap
+
+To make notifications reliable on a fresh system, run:
+
+```bash
+~/.config/quickshell/scripts/setup-notifications.sh
+```
+
+What this sets up:
+- Installs `~/.config/systemd/user/qs-notifications.service` (DBus owner for `org.freedesktop.Notifications`).
+- Installs `~/.local/share/dbus-1/services/org.freedesktop.Notifications.service` (activation mapping).
+- Disables competing daemons (`dunst`, `swaync`, `mako`).
+
 ## Linting
 
 - Lint all QML:
