@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.Notifications
+SystemdService=qs-notifications.service
+Exec=/usr/bin/qs

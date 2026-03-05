@@ -8,6 +8,9 @@ import sys
 
 
 DEFAULT_RUNTIME_PATH = os.path.expanduser("~/.local/state/quickshell/runtime.json")
+DEFAULT_UI_SCALE = 1.0
+MIN_UI_SCALE = 0.75
+MAX_UI_SCALE = 2.5
 DEFAULT_HYPR_FILES = [
     os.path.expanduser("~/.config/hypr/programs"),
     os.path.expanduser("~/.config/hypr/programs.conf"),
@@ -120,11 +123,46 @@ def launch_terminal(runtime_path, command):
     return 0
 
 
+def clamp_ui_scale(value):
+    return max(MIN_UI_SCALE, min(MAX_UI_SCALE, value))
+
+
+def parse_ui_scale(raw):
+    try:
+        return clamp_ui_scale(float(raw))
+    except Exception:
+        return None
+
+
+def get_ui_scale(runtime_path):
+    data = read_runtime(runtime_path)
+    raw = data.get("ui_scale", data.get("launcher_scale", DEFAULT_UI_SCALE))
+    value = parse_ui_scale(raw)
+    if value is None:
+        value = DEFAULT_UI_SCALE
+    sys.stdout.write(f"{value:.2f}\n")
+    return 0
+
+
+def set_ui_scale(runtime_path, raw_value):
+    value = parse_ui_scale(raw_value)
+    if value is None:
+        return 2
+    data = read_runtime(runtime_path)
+    data["ui_scale"] = value
+    write_runtime(runtime_path, data)
+    return 0
+
+
 def build_parser():
     p = argparse.ArgumentParser()
     p.add_argument("--runtime-file", default=DEFAULT_RUNTIME_PATH)
     p.add_argument("--hypr-file", action="append", default=[])
     p.add_argument("--sync-hypr-terminal", action="store_true")
+    p.add_argument("--get-ui-scale", action="store_true")
+    p.add_argument("--set-ui-scale")
+    p.add_argument("--get-launcher-scale", action="store_true")
+    p.add_argument("--set-launcher-scale")
     p.add_argument("--launch-terminal", action="store_true")
     p.add_argument("remainder", nargs=argparse.REMAINDER)
     return p
@@ -136,6 +174,18 @@ def main():
     if args.sync_hypr_terminal:
         files = args.hypr_file if args.hypr_file else DEFAULT_HYPR_FILES
         return sync_from_hypr(args.runtime_file, files)
+
+    if args.get_ui_scale:
+        return get_ui_scale(args.runtime_file)
+
+    if args.set_ui_scale is not None:
+        return set_ui_scale(args.runtime_file, args.set_ui_scale)
+
+    if args.get_launcher_scale:
+        return get_ui_scale(args.runtime_file)
+
+    if args.set_launcher_scale is not None:
+        return set_ui_scale(args.runtime_file, args.set_launcher_scale)
 
     if args.launch_terminal:
         remainder = list(args.remainder)

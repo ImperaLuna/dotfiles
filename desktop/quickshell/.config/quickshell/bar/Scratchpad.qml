@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Hyprland
 import Quickshell.Io
+import "../metrics"
 import "../theme"
 
 Item {
@@ -35,7 +36,7 @@ Item {
         color: root.isActive ? Colors.mauve : Colors.surface0
 
         Behavior on color {
-            ColorAnimation { duration: 120 }
+            ColorAnimation { duration: Metrics.animDurationFast }
         }
 
         Text {
@@ -46,13 +47,13 @@ Item {
             verticalAlignment: Text.AlignVCenter
             x: Metrics.scratchpadGlyphNudgeX
             color: root.isActive ? Colors.crust : Colors.subtext0
-            font.family: "JetBrainsMono Nerd Font"
+            font.family: Fonts.text
             font.pixelSize: Math.max(9, Math.round(Metrics.workspaceFontBase * root.uiScale))
             font.bold: root.isActive
             renderType: Text.NativeRendering
 
             Behavior on color {
-                ColorAnimation { duration: 120 }
+                ColorAnimation { duration: Metrics.animDurationFast }
             }
         }
 

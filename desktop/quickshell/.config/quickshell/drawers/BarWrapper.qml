@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "../bar"
-import "../theme"
+import "../metrics"
 
 Item {
     id: root
@@ -11,19 +11,22 @@ Item {
     required property int inset
     required property int cornerRadius
     required property int barCornerRadius
+    required property color barColor
 
     readonly property int barHeight: Math.max(20, Math.round(Metrics.barHeightBase * resolutionScale))
     readonly property int barPadding: Math.max(6, Math.round(Metrics.barPaddingBase * resolutionScale))
     readonly property int sectionGap: Math.max(2, Math.round(Metrics.sectionGapBase * resolutionScale))
-    property bool sessionOpen: false
-    signal toggleSession()
+    property bool powerMenuOpen: false
+    property bool settingsOpen: false
+    signal togglePowerMenu()
+    signal toggleSettings()
 
     implicitHeight: barHeight
 
     Rectangle {
         id: bar
         anchors.fill: parent
-        color: Colors.base
+        color: root.barColor
         radius: 0
         topLeftRadius: root.barCornerRadius
         topRightRadius: root.barCornerRadius
@@ -35,6 +38,7 @@ Item {
                 leftMargin: root.barPadding
                 rightMargin: root.barPadding
             }
+            spacing: root.sectionGap
 
             Workspaces {
                 monitorName: root.screenModel.name
@@ -47,12 +51,21 @@ Item {
             }
 
             Item { Layout.fillWidth: true }
-            Clock {}
+
+            Clock {
+                Layout.alignment: Qt.AlignVCenter
+                uiScale: root.resolutionScale
+            }
+
             Item { Layout.fillWidth: true }
 
             SysTray {
-                sessionOpen: root.sessionOpen
-                onToggleSession: root.toggleSession()
+                Layout.alignment: Qt.AlignVCenter
+                uiScale: root.resolutionScale
+                powerMenuOpen: root.powerMenuOpen
+                settingsOpen: root.settingsOpen
+                onTogglePowerMenu: root.togglePowerMenu()
+                onTriggerTest: root.toggleSettings()
             }
         }
     }

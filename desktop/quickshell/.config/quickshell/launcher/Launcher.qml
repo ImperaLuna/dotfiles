@@ -3,8 +3,10 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import QtQuick
 import "LauncherLogic.js" as Logic
+import "../metrics"
 
 // qmllint disable uncreatable-type
 PanelWindow {
@@ -16,7 +18,9 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
-    implicitWidth: 640
+    property real uiScale: 1.0
+    property real globalUiScale: 1.0
+    implicitWidth: Math.round(Metrics.launcherWidthBase * uiScale)
     implicitHeight: view.maxHeight
 
     property var allApps: []
@@ -150,8 +154,53 @@ PanelWindow {
         root.visible = false;
     }
 
+    function computeUiScale() {
+        const screenHeight = Number(screen?.height ?? 1080);
+        const dpr = Number(screen?.devicePixelRatio ?? 1.0);
+        const logicalPixelDensity = Number(screen?.logicalPixelDensity ?? (96 / 25.4));
+        const dpiFactor = (logicalPixelDensity * 25.4) / 96;
+        const screenName = String(screen?.name ?? "");
+        let hyprScale = 1.0;
+        const monitors = Hyprland.monitors ?? [];
+        for (let i = 0; i < monitors.length; i += 1) {
+            const mon = monitors[i];
+            if (String(mon?.name ?? "") === screenName) {
+                hyprScale = Number(mon?.scale ?? 1.0);
+                break;
+            }
+        }
+        if (hyprScale <= 0)
+            hyprScale = Number(Hyprland.focusedMonitor?.scale ?? 1.0);
+        const pixelFactor = Math.max(1.0, dpr, dpiFactor, hyprScale);
+        const effectiveHeight = screenHeight * pixelFactor;
+        const baseScale = Math.max(0.75, Math.min(2.0, effectiveHeight / 1080));
+        const globalFactor = Math.max(0.75, Math.min(2.5, Number(globalUiScale ?? 1.0)));
+        return Math.max(0.75, Math.min(4.0, baseScale * globalFactor));
+    }
+
+    function syncToFocusedScreen() {
+        const focusedName = String(Hyprland.focusedMonitor?.name ?? "");
+        if (focusedName.length <= 0)
+            return;
+        const allScreens = Quickshell.screens ?? [];
+        for (let i = 0; i < allScreens.length; i += 1) {
+            const candidate = allScreens[i];
+            if (String(candidate?.name ?? "") === focusedName) {
+                root.screen = candidate;
+                return;
+            }
+        }
+    }
+
+    onGlobalUiScaleChanged: {
+        if (visible)
+            uiScale = computeUiScale();
+    }
+
     onVisibleChanged: {
         if (visible) {
+            syncToFocusedScreen();
+            uiScale = computeUiScale();
             view.resetPointerTracking();
             if (root.pendingAppsUpdate !== null) {
                 root.applyAppsUpdate(root.pendingAppsUpdate);
@@ -169,6 +218,8 @@ PanelWindow {
     }
 
     Component.onCompleted: {
+        syncToFocusedScreen();
+        uiScale = computeUiScale();
         appLoader.running = true;
         runtimeSync.running = true;
     }
@@ -176,6 +227,7 @@ PanelWindow {
     LauncherView {
         id: view
         anchors.fill: parent
+        uiScale: root.uiScale
         results: root.results
 
         onQueryChanged: root.refilterResetSelection()

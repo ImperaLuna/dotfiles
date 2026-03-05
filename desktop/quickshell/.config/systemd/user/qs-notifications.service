@@ -1,0 +1,11 @@
+[Unit]
+Description=Quickshell Notifications Service (org.freedesktop.Notifications)
+Documentation=https://quickshell.org/
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/qs
+Restart=on-failure
+RestartSec=1s

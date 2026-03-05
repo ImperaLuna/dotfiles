@@ -3,21 +3,28 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../metrics"
 import "../theme"
 
 Item {
     id: viewRoot
 
     property var results: []
+    property real uiScale: 1.0
     property alias currentIndex: listView.currentIndex
     property alias queryText: searchField.text
     readonly property bool listHasActiveFocus: listView.activeFocus
     readonly property int listViewportHeight: listView.height
-    readonly property int rowHeight: 56
-    readonly property int maxVisibleRows: 7
-    readonly property int frameMargins: 24
-    readonly property int columnSpacing: 8
-    readonly property int searchHeight: 42
+    readonly property int rowHeight: Math.max(32, Math.round(Metrics.launcherRowHeightBase * uiScale))
+    readonly property int maxVisibleRows: Metrics.launcherMaxVisibleRowsBase
+    readonly property int frameMargins: Math.max(12, Math.round(Metrics.launcherFrameMarginsBase * uiScale))
+    readonly property int columnSpacing: Math.max(4, Math.round(Metrics.launcherColumnGapBase * uiScale))
+    readonly property int searchHeight: Math.max(28, Math.round(Metrics.launcherSearchHeightBase * uiScale))
+    readonly property int frameRadius: Math.max(8, Math.round(Metrics.launcherRadiusBase * uiScale))
+    readonly property int innerRadius: Math.max(6, Math.round(Metrics.launcherInnerRadiusBase * uiScale))
+    readonly property int iconSize: Math.max(20, Math.round(Metrics.launcherIconSizeBase * uiScale))
+    readonly property int titleFontSize: Math.max(10, Math.round(Metrics.launcherTitleFontBase * uiScale))
+    readonly property int subtitleFontSize: Math.max(9, Math.round(Metrics.launcherSubtitleFontBase * uiScale))
     readonly property int maxListHeight: rowHeight * maxVisibleRows
     readonly property int targetListHeight: Math.min(maxListHeight, Math.max(0, results.length) * rowHeight)
     property real animatedListHeight: targetListHeight
@@ -26,7 +33,7 @@ Item {
 
     Behavior on animatedListHeight {
         NumberAnimation {
-            duration: 210
+            duration: Metrics.animDurationLayout
             easing.type: Easing.OutCubic
         }
     }
@@ -92,9 +99,9 @@ Item {
         }
         height: viewRoot.preferredHeight
         color: Colors.base
-        radius: 12
+        radius: viewRoot.frameRadius
         border.color: Colors.surface1
-        border.width: 1
+        border.width: Math.max(1, Math.round(viewRoot.uiScale))
 
         ColumnLayout {
             anchors {
@@ -105,23 +112,23 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: searchHeight
+                implicitHeight: viewRoot.searchHeight
                 color: Colors.mantle
-                radius: 8
+                radius: viewRoot.innerRadius
 
                 TextField {
                     id: searchField
                     anchors {
                         fill: parent
-                        leftMargin: 12
-                        rightMargin: 12
+                        leftMargin: Math.round(12 * viewRoot.uiScale)
+                        rightMargin: Math.round(12 * viewRoot.uiScale)
                     }
                     placeholderText: "Search applications or type math…"
                     background: null
                     color: Colors.text
                     placeholderTextColor: Colors.overlay0
-                    font.pixelSize: 14
-                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: viewRoot.titleFontSize
+                    font.family: Fonts.text
 
                     onTextChanged: viewRoot.queryChanged(text)
 
@@ -184,7 +191,7 @@ Item {
                 rebound: Transition {
                     NumberAnimation {
                         properties: "x,y"
-                        duration: 220
+                        duration: Metrics.animDurationRebound
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -196,8 +203,8 @@ Item {
                     visible: listView.contentHeight > listView.height
                     policy: ScrollBar.AsNeeded
                     active: showWhileScrolling || pressed
-                    width: 10
-                    padding: 2
+                    width: Math.max(8, Math.round(10 * viewRoot.uiScale))
+                    padding: Math.max(1, Math.round(2 * viewRoot.uiScale))
 
                     Connections {
                         target: listView
@@ -219,20 +226,20 @@ Item {
                     }
 
                     background: Rectangle {
-                        radius: 999
+                        radius: Math.round(999 * viewRoot.uiScale)
                         color: Colors.surface0
                         opacity: (scrollBar.size < 1 && scrollBar.showWhileScrolling) ? 0.4 : 0
 
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: 420
+                                duration: Metrics.animDurationSlow
                                 easing.type: Easing.OutCubic
                             }
                         }
                     }
 
                     contentItem: Rectangle {
-                        radius: 999
+                        radius: Math.round(999 * viewRoot.uiScale)
                         color: Colors.overlay0
                         opacity: {
                             if (scrollBar.size >= 1)
@@ -246,7 +253,7 @@ Item {
 
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: 420
+                                duration: Metrics.animDurationSlow
                                 easing.type: Easing.OutCubic
                             }
                         }
@@ -258,13 +265,13 @@ Item {
                         property: "opacity"
                         from: 0
                         to: 1
-                        duration: 130
+                        duration: Metrics.animDurationItemIn
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
                         property: "y"
                         from: 10
-                        duration: 130
+                        duration: Metrics.animDurationItemIn
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -274,14 +281,14 @@ Item {
                         property: "opacity"
                         from: 1
                         to: 0
-                        duration: 110
+                        duration: Metrics.animDurationItemOut
                         easing.type: Easing.InOutCubic
                     }
                     NumberAnimation {
                         property: "scale"
                         from: 1
                         to: 0.985
-                        duration: 110
+                        duration: Metrics.animDurationItemOut
                         easing.type: Easing.InOutCubic
                     }
                 }
@@ -289,19 +296,19 @@ Item {
                 move: Transition {
                     NumberAnimation {
                         property: "y"
-                        duration: 170
+                        duration: Metrics.animDurationMid
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
                         property: "opacity"
                         to: 1
-                        duration: 120
+                        duration: Metrics.animDurationFast
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
                         property: "scale"
                         to: 1
-                        duration: 150
+                        duration: Metrics.animDurationItemSettle
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -309,19 +316,19 @@ Item {
                 addDisplaced: Transition {
                     NumberAnimation {
                         property: "y"
-                        duration: 170
+                        duration: Metrics.animDurationMid
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
                         property: "opacity"
                         to: 1
-                        duration: 120
+                        duration: Metrics.animDurationFast
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
                         property: "scale"
                         to: 1
-                        duration: 150
+                        duration: Metrics.animDurationItemSettle
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -329,19 +336,19 @@ Item {
                 displaced: Transition {
                     NumberAnimation {
                         property: "y"
-                        duration: 170
+                        duration: Metrics.animDurationMid
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
                         property: "opacity"
                         to: 1
-                        duration: 120
+                        duration: Metrics.animDurationFast
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
                         property: "scale"
                         to: 1
-                        duration: 150
+                        duration: Metrics.animDurationItemSettle
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -391,13 +398,13 @@ Item {
                     }
 
                     width: listView.width
-                    height: rowHeight
+                    height: viewRoot.rowHeight
                     color: "transparent"
-                    radius: 6
+                    radius: Math.max(4, Math.round(6 * viewRoot.uiScale))
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 6
+                        radius: Math.max(4, Math.round(6 * viewRoot.uiScale))
                         color: Colors.surface0
                         opacity: listView.currentIndex === appItem.index ? 1 : 0
                     }
@@ -406,15 +413,15 @@ Item {
                         anchors {
                             verticalCenter: parent.verticalCenter
                             left: parent.left
-                            leftMargin: 8
+                            leftMargin: Math.round(8 * viewRoot.uiScale)
                             right: parent.right
-                            rightMargin: 8
+                            rightMargin: Math.round(8 * viewRoot.uiScale)
                         }
-                        spacing: 12
+                        spacing: Math.round(12 * viewRoot.uiScale)
 
                         Item {
-                            width: 36
-                            height: 36
+                            width: viewRoot.iconSize
+                            height: viewRoot.iconSize
                             anchors.verticalCenter: parent.verticalCenter
 
                             Image {
@@ -446,27 +453,27 @@ Item {
                             Rectangle {
                                 anchors.fill: parent
                                 visible: themeIcon.status !== Image.Ready && !fileIcon.visible
-                                radius: 6
+                                radius: Math.max(4, Math.round(6 * viewRoot.uiScale))
                                 color: Colors.surface1
 
                                 Text {
                                     anchors.centerIn: parent
                                     text: "\u25A1"
                                     color: Colors.overlay0
-                                    font.pixelSize: 16
+                                    font.pixelSize: Math.max(10, Math.round(16 * viewRoot.uiScale))
                                 }
                             }
                         }
 
                         Column {
                             anchors.verticalCenter: parent.verticalCenter
-                            spacing: 2
-                            width: parent.width - 48
+                            spacing: Math.max(1, Math.round(2 * viewRoot.uiScale))
+                            width: parent.width - Math.round(48 * viewRoot.uiScale)
 
                             Text {
                                 text: appItem.entry.name ?? ""
                                 color: Colors.text
-                                font.pixelSize: 14
+                                font.pixelSize: viewRoot.titleFontSize
                                 elide: Text.ElideRight
                                 width: parent.width
                             }
@@ -474,7 +481,7 @@ Item {
                             Text {
                                 text: appItem.entry.description ?? ""
                                 color: Colors.subtext0
-                                font.pixelSize: 11
+                                font.pixelSize: viewRoot.subtitleFontSize
                                 elide: Text.ElideRight
                                 width: parent.width
                                 visible: (appItem.entry.description ?? "") !== ""

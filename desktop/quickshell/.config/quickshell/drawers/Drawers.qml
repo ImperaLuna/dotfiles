@@ -3,6 +3,8 @@ import Quickshell.Wayland
 import QtQuick
 import QtQuick.Shapes
 import "./"
+import "../notifications" as Notifications
+import "../powermenu" as PowerMenu
 import "../theme"
 
 // qmllint disable uncreatable-type
@@ -10,6 +12,11 @@ PanelWindow {
     id: root
 
     required property var screenModel
+    required property var uiSettings
+    required property var notificationService
+    required property var notificationPlacement
+    required property var allScreens
+    required property bool notificationHost
 
     color: "transparent"
     exclusiveZone: 0
@@ -26,26 +33,39 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     focusable: false
 
-    // Keep proportions consistent across mixed-resolution monitors.
-    property real resolutionScale: Math.max(0.75, Math.min(1.5, screenModel.height / 1080))
+    // Keep proportions consistent across mixed-resolution monitors, with a global user multiplier.
+    // Clamp base monitor factor first, then apply global scale so high-res screens do not hit an early cap.
+    readonly property real monitorScale: Math.max(0.75, Math.min(1.5, screenModel.height / 1080))
+    property real resolutionScale: Math.max(0.5, Math.min(4.0, monitorScale * Number(uiSettings?.scale ?? 1.0)))
     property int borderWidth: Math.max(1, Math.round(8 * resolutionScale))
     property int cornerRadius: Math.max(1, Math.round(12 * resolutionScale))
     // Lower = sharper corner attack angle, higher = rounder.
     property real barCornerFactor: 0.75
     property int barCornerRadius: Math.max(1, Math.round(cornerRadius * barCornerFactor))
     property int inset: 0
-    property color borderColor: Colors.base
-    property bool sessionOpen: false
+    property color chromeColor: Colors.base
+    property bool powerMenuOpen: false
+    property bool notificationOpen: false
+    property bool settingsOpen: false
+    readonly property int notifRounding: Math.round(root.cornerRadius * 1.5)
+    readonly property real rightPanelWidth: Math.max(panels.powerMenu.width, panels.notifications.visible ? panels.notifications.width : 0)
+
+    ChromeGeometry {
+        id: geometry
+        inset: root.inset
+        borderWidth: root.borderWidth
+        barHeight: panels.bar.implicitHeight
+        rightPanelWidth: root.rightPanelWidth
+        windowWidth: root.width
+        windowHeight: root.height
+    }
 
     Exclusions {
         screenModel: root.screenModel
-        topReserved: root.inset + panels.bar.implicitHeight
-        sideReserved: root.inset + root.borderWidth
-        bottomReserved: root.inset + root.borderWidth
+        geometry: geometry
     }
 
     // Caelestia-like composition: one window that owns bar + border.
-    // This makes future top-edge dashboard slide panels straightforward.
     mask: Region {
         x: 0
         y: 0
@@ -53,18 +73,26 @@ PanelWindow {
         height: root.height
 
         Region {
-            x: root.inset + root.borderWidth
-            y: root.inset + panels.bar.implicitHeight
-            width: Math.max(0, root.width - (root.inset + root.borderWidth) * 2 - panels.session.width)
-            height: Math.max(0, root.height - root.inset - panels.bar.implicitHeight - root.borderWidth)
+            x: geometry.interiorX
+            y: geometry.interiorY
+            width: geometry.interiorWidth
+            height: geometry.interiorHeight
             intersection: Intersection.Subtract
         }
 
         Region {
-            x: root.inset
-            y: root.inset
-            width: Math.max(0, root.width - root.inset * 2)
-            height: panels.bar.implicitHeight
+            x: geometry.barStripX
+            y: geometry.barStripY
+            width: geometry.barStripWidth
+            height: geometry.barStripHeight
+            intersection: Intersection.Combine
+        }
+
+        Region {
+            x: panels.settings.x
+            y: panels.settings.y
+            width: panels.settings.visible ? panels.settings.width : 0
+            height: panels.settings.visible ? panels.settings.height : 0
             intersection: Intersection.Combine
         }
     }
@@ -74,14 +102,26 @@ PanelWindow {
         z: 2
 
         screenModel: root.screenModel
+        uiSettings: root.uiSettings
+        notificationService: root.notificationService
+        notificationPlacement: root.notificationPlacement
+        allScreens: root.allScreens
+        notificationHost: root.notificationHost
         resolutionScale: root.resolutionScale
         inset: root.inset
         cornerRadius: root.cornerRadius
         barCornerRadius: root.barCornerRadius
         borderWidth: root.borderWidth
-        sessionOpen: root.sessionOpen
-        onToggleSession: root.sessionOpen = !root.sessionOpen
-        onCloseSession: root.sessionOpen = false
+        chromeColor: root.chromeColor
+        powerMenuOpen: root.powerMenuOpen
+        notificationOpen: root.notificationOpen
+        settingsOpen: root.settingsOpen
+        onTogglePowerMenu: root.powerMenuOpen = !root.powerMenuOpen
+        onClosePowerMenu: root.powerMenuOpen = false
+        onToggleNotification: root.notificationOpen = !root.notificationOpen
+        onCloseNotification: root.notificationOpen = false
+        onToggleSettings: root.settingsOpen = !root.settingsOpen
+        onCloseSettings: root.settingsOpen = false
     }
 
     Shape {
@@ -89,15 +129,46 @@ PanelWindow {
         z: 1.5
 
         anchors.fill: parent
-        anchors.margins: root.inset + root.borderWidth
+        anchors.margins: root.inset + geometry.borderWidth
         preferredRendererType: Shape.CurveRenderer
 
-        SessionBackground {
-            wrapper: panels.session
+        Item {
+            id: notifNormalWrapper
+            visible: panels.notifications.visible && !panels.notifications.panelOverflow
+            width: panels.notifications.width
+            height: panels.notifications.height
+        }
+
+        Item {
+            id: notifDrawerWrapper
+            visible: panels.notifications.visible && panels.notifications.panelOverflow
+            width: panels.notifications.width
+            y: panels.notifications.y - (root.inset + geometry.borderWidth)
+            height: Math.max(0, panelBackgrounds.height - y)
+        }
+
+        PowerMenu.Background {
+            wrapper: panels.powerMenu
             rounding: Math.round(root.cornerRadius * 1.8)
 
             startX: panelBackgrounds.width
             startY: (panelBackgrounds.height - wrapper.height) / 2 - rounding
+        }
+
+        Notifications.Background {
+            wrapper: notifNormalWrapper
+            rounding: root.notifRounding
+
+            startX: panelBackgrounds.width
+            startY: panels.notifications.y - (root.inset + geometry.borderWidth)
+        }
+
+        Notifications.DrawerBackground {
+            wrapper: notifDrawerWrapper
+            rounding: root.notifRounding
+
+            startX: panelBackgrounds.width
+            startY: notifDrawerWrapper.y
         }
     }
 
@@ -108,10 +179,8 @@ PanelWindow {
         anchors.fill: parent
         anchors.margins: root.inset
 
-        borderWidth: root.borderWidth
+        geometry: geometry
         cornerRadius: root.cornerRadius
-        barHeight: panels.bar.implicitHeight
-        inset: root.inset
-        borderColor: root.borderColor
+        borderColor: root.chromeColor
     }
 }

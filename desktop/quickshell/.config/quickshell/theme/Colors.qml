@@ -41,4 +41,6 @@ QtObject {
     readonly property color sapphire:  "#74c7ec"
     readonly property color blue:      "#89b4fa"
     readonly property color lavender:  "#b4befe"
+
+    readonly property color test:      "#ffffff"
 }
