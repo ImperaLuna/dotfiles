@@ -82,6 +82,15 @@ Do not put panel background rectangles inside feature wrappers if the feature is
   - `Fonts.text`
   - `Fonts.symbols`
 
+## Scaling Rule
+
+- Avoid hardcoded pixel literals in feature UIs (`launcher/`, `notifications/`, and new modules).
+- Size values should be derived from monitor scale (`screen.height / 1080` clamped) or shared metrics tokens.
+- When adding a new component:
+  - expose a `uiScale`/`resolutionScale` input, and
+  - multiply spacing/radius/font/width/height by that scale.
+- Reason: fixed px causes mismatched UI size across mixed-resolution monitors.
+
 ## Caelestia Inspiration / Reference
 
 Primary local references:

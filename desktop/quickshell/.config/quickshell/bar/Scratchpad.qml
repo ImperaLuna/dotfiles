@@ -36,7 +36,7 @@ Item {
         color: root.isActive ? Colors.mauve : Colors.surface0
 
         Behavior on color {
-            ColorAnimation { duration: 120 }
+            ColorAnimation { duration: Metrics.animDurationFast }
         }
 
         Text {
@@ -53,7 +53,7 @@ Item {
             renderType: Text.NativeRendering
 
             Behavior on color {
-                ColorAnimation { duration: 120 }
+                ColorAnimation { duration: Metrics.animDurationFast }
             }
         }
 

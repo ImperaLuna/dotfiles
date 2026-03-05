@@ -63,6 +63,7 @@ Item {
     PowerMenu.Wrapper {
         id: powerMenu
         open: root.powerMenuOpen
+        uiScale: root.resolutionScale
         onCloseRequested: root.closePowerMenu()
         anchors {
             right: parent.right
@@ -75,6 +76,7 @@ Item {
         id: notifications
         notificationService: root.notificationService
         notificationHost: root.notificationHost
+        uiScale: root.resolutionScale
         open: root.notificationOpen
         onCloseRequested: root.closeNotification()
         anchors {
@@ -88,6 +90,7 @@ Item {
     Settings.Wrapper {
         id: settings
         open: root.settingsOpen
+        uiScale: root.resolutionScale
         placementConfig: root.notificationPlacement
         allScreens: root.allScreens
         onCloseRequested: root.closeSettings()

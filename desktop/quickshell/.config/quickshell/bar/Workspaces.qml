@@ -42,7 +42,7 @@ Row {
             color: modelData.active ? Colors.blue : Colors.surface0
 
             Behavior on color {
-                ColorAnimation { duration: 120 }
+                ColorAnimation { duration: Metrics.animDurationFast }
             }
 
             Text {
@@ -55,7 +55,7 @@ Row {
                 font.bold: pill.modelData.active
 
                 Behavior on color {
-                    ColorAnimation { duration: 120 }
+                    ColorAnimation { duration: Metrics.animDurationFast }
                 }
             }
 

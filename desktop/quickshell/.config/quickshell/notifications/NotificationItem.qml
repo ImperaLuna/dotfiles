@@ -6,6 +6,7 @@ Rectangle {
     id: root
 
     required property int notifIndex
+    required property real notifUiScale
     required property string notifAppName
     required property string notifAgeText
     required property string notifSummary
@@ -21,28 +22,28 @@ Rectangle {
     readonly property bool hasPreviewImage: notifImageSource.length > 0
     readonly property bool hasAppIcon: notifIconSource.length > 0
     readonly property bool hasVisualIcon: hasPreviewImage || hasAppIcon
-    readonly property int actionRowHeight: notifExpanded ? 24 : 0
-    readonly property int actionRowGap: notifExpanded ? 8 : 0
+    readonly property int actionRowHeight: notifExpanded ? Math.round(24 * root.notifUiScale) : 0
+    readonly property int actionRowGap: notifExpanded ? Math.round(8 * root.notifUiScale) : 0
 
-    radius: 16
+    radius: Math.round(16 * root.notifUiScale)
     color: Colors.surface0
-    border.width: 1
+    border.width: Math.max(1, Math.round(root.notifUiScale))
     border.color: Colors.overlay0
-    implicitHeight: Math.max(contentColumn.implicitHeight, avatarFrame.implicitHeight) + 16 + actionRowGap + actionRowHeight
+    implicitHeight: Math.max(contentColumn.implicitHeight, avatarFrame.implicitHeight) + Math.round(16 * root.notifUiScale) + actionRowGap + actionRowHeight
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 30
-        anchors.topMargin: 8
-        anchors.bottomMargin: 8 + root.actionRowGap + root.actionRowHeight
-        spacing: 10
+        anchors.leftMargin: Math.round(12 * root.notifUiScale)
+        anchors.rightMargin: Math.round(30 * root.notifUiScale)
+        anchors.topMargin: Math.round(8 * root.notifUiScale)
+        anchors.bottomMargin: Math.round(8 * root.notifUiScale) + root.actionRowGap + root.actionRowHeight
+        spacing: Math.round(10 * root.notifUiScale)
 
         Rectangle {
             id: avatarFrame
             Layout.alignment: Qt.AlignTop
-            Layout.preferredWidth: root.hasPreviewImage ? 44 : 30
-            Layout.preferredHeight: root.hasPreviewImage ? 44 : 30
+            Layout.preferredWidth: root.hasPreviewImage ? Math.round(44 * root.notifUiScale) : Math.round(30 * root.notifUiScale)
+            Layout.preferredHeight: root.hasPreviewImage ? Math.round(44 * root.notifUiScale) : Math.round(30 * root.notifUiScale)
             radius: root.hasVisualIcon ? 0 : 15
             color: root.hasVisualIcon ? "transparent" : Colors.surface0
             border.width: root.hasVisualIcon ? 0 : 1
@@ -75,7 +76,7 @@ Rectangle {
                 text: "question_mark"
                 color: Colors.text
                 font.family: Fonts.symbols
-                font.pixelSize: 20
+                font.pixelSize: Math.round(20 * root.notifUiScale)
                 font.weight: 600
                 renderType: Text.NativeRendering
             }
@@ -89,41 +90,41 @@ Rectangle {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: Math.round(6 * root.notifUiScale)
                 visible: root.notifExpanded
 
                 Text {
                     text: root.notifAppName
                     color: Colors.subtext0
                     font.family: Fonts.text
-                    font.pixelSize: 10
+                    font.pixelSize: Math.round(10 * root.notifUiScale)
                     font.bold: true
                 }
 
                 Text {
                     text: "•"
                     color: Colors.subtext0
-                    font.pixelSize: 10
+                    font.pixelSize: Math.round(10 * root.notifUiScale)
                 }
 
                 Text {
                     text: root.notifAgeText
                     color: Colors.subtext0
                     font.family: Fonts.text
-                    font.pixelSize: 10
+                    font.pixelSize: Math.round(10 * root.notifUiScale)
                 }
             }
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: Math.round(6 * root.notifUiScale)
 
                 Text {
                     Layout.fillWidth: true
                     text: root.notifSummary
                     color: Colors.text
                     font.family: Fonts.text
-                    font.pixelSize: 11
+                    font.pixelSize: Math.round(11 * root.notifUiScale)
                     font.bold: true
                     wrapMode: Text.WordWrap
                     maximumLineCount: root.notifExpanded ? 2 : 1
@@ -134,7 +135,7 @@ Rectangle {
                     visible: !root.notifExpanded
                     text: "•"
                     color: Colors.subtext0
-                    font.pixelSize: 10
+                    font.pixelSize: Math.round(10 * root.notifUiScale)
                 }
 
                 Text {
@@ -142,7 +143,7 @@ Rectangle {
                     text: root.notifAgeText
                     color: Colors.subtext0
                     font.family: Fonts.text
-                    font.pixelSize: 10
+                    font.pixelSize: Math.round(10 * root.notifUiScale)
                 }
 
             }
@@ -156,7 +157,7 @@ Rectangle {
                 elide: Text.ElideRight
                 color: Colors.subtext1
                 font.family: Fonts.text
-                font.pixelSize: 11
+                font.pixelSize: Math.round(11 * root.notifUiScale)
             }
         }
     }
@@ -164,13 +165,13 @@ Rectangle {
     Text {
         id: expandToggle
         anchors.top: parent.top
-        anchors.topMargin: 8
+        anchors.topMargin: Math.round(8 * root.notifUiScale)
         anchors.right: parent.right
-        anchors.rightMargin: 10
+        anchors.rightMargin: Math.round(10 * root.notifUiScale)
         text: root.notifExpanded ? "expand_less" : "expand_more"
         color: Colors.subtext0
         font.family: Fonts.symbols
-        font.pixelSize: 15
+        font.pixelSize: Math.round(15 * root.notifUiScale)
         font.weight: 600
 
         MouseArea {
@@ -184,15 +185,15 @@ Rectangle {
     Row {
         id: actionsRow
         visible: root.notifExpanded
-        spacing: 8
+        spacing: Math.round(8 * root.notifUiScale)
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
+        anchors.bottomMargin: Math.round(8 * root.notifUiScale)
         anchors.horizontalCenter: parent.horizontalCenter
 
         Rectangle {
-            implicitWidth: 94
-            implicitHeight: 24
-            radius: 12
+            implicitWidth: Math.round(94 * root.notifUiScale)
+            implicitHeight: Math.round(24 * root.notifUiScale)
+            radius: Math.round(12 * root.notifUiScale)
             color: root.notifHasPrimaryAction ? Colors.surface2 : Colors.surface1
             opacity: root.notifHasPrimaryAction ? 1 : 0.6
 
@@ -201,7 +202,7 @@ Rectangle {
                 text: "Go To App"
                 color: Colors.text
                 font.family: Fonts.text
-                font.pixelSize: 11
+                font.pixelSize: Math.round(11 * root.notifUiScale)
             }
 
             MouseArea {
@@ -214,9 +215,9 @@ Rectangle {
         }
 
         Rectangle {
-            implicitWidth: 62
-            implicitHeight: 24
-            radius: 12
+            implicitWidth: Math.round(62 * root.notifUiScale)
+            implicitHeight: Math.round(24 * root.notifUiScale)
+            radius: Math.round(12 * root.notifUiScale)
             color: Colors.surface2
 
             Text {
@@ -224,7 +225,7 @@ Rectangle {
                 text: "Close"
                 color: Colors.text
                 font.family: Fonts.text
-                font.pixelSize: 11
+                font.pixelSize: Math.round(11 * root.notifUiScale)
             }
 
             MouseArea {

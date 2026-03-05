@@ -3,24 +3,26 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import "../metrics"
 import "../theme"
 
 Item {
     id: root
 
     property bool open: false
+    required property real uiScale
     signal closeRequested()
-    readonly property real nonAnimWidth: 176
-    readonly property real rounding: 16
+    readonly property real nonAnimWidth: Math.round(Metrics.powerMenuWidthBase * uiScale)
+    readonly property real rounding: Math.round(16 * uiScale)
 
     visible: width > 0
     width: open ? nonAnimWidth : 0
-    height: content.implicitHeight + 24
+    height: content.implicitHeight + Math.round(24 * uiScale)
     clip: true
 
     Behavior on width {
         NumberAnimation {
-            duration: 170
+            duration: Metrics.animDurationMid
             easing.type: Easing.InOutCubic
         }
     }
@@ -28,9 +30,9 @@ Item {
     ColumnLayout {
         id: content
         anchors.top: parent.top
-        anchors.topMargin: 12
+        anchors.topMargin: Math.round(12 * root.uiScale)
         anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 12
+        spacing: Math.round(12 * root.uiScale)
 
         PowerButton {
             Layout.alignment: Qt.AlignHCenter
@@ -75,15 +77,15 @@ Item {
         required property string title
         required property string command
 
-        width: 104
-        height: iconButton.height + titleText.implicitHeight + 8
+        width: Math.round(104 * root.uiScale)
+        height: iconButton.height + titleText.implicitHeight + Math.round(8 * root.uiScale)
 
         Rectangle {
             id: iconButton
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 56
-            height: 56
-            radius: 12
+            width: Math.round(56 * root.uiScale)
+            height: Math.round(56 * root.uiScale)
+            radius: Math.round(12 * root.uiScale)
             color: buttonMouse.containsMouse ? Colors.surface1 : Colors.surface0
 
             Text {
@@ -91,7 +93,7 @@ Item {
                 text: button.icon
                 color: Colors.text
                 font.family: Fonts.symbols
-                font.pixelSize: 26
+                font.pixelSize: Math.round(26 * root.uiScale)
                 font.weight: 600
                 renderType: Text.NativeRendering
             }
@@ -111,12 +113,12 @@ Item {
         Text {
             id: titleText
             anchors.top: iconButton.bottom
-            anchors.topMargin: 4
+            anchors.topMargin: Math.round(4 * root.uiScale)
             anchors.horizontalCenter: iconButton.horizontalCenter
             text: button.title
             color: Colors.text
             font.family: Fonts.text
-            font.pixelSize: 10
+            font.pixelSize: Math.round(10 * root.uiScale)
             font.bold: true
         }
 

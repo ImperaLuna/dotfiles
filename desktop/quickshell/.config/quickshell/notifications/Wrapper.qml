@@ -2,18 +2,20 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import "../metrics"
 
 Item {
     id: root
 
     required property var notificationService
     required property bool notificationHost
+    required property real uiScale
     property bool open: false
     signal closeRequested()
-    readonly property real nonAnimWidth: 320
+    readonly property real nonAnimWidth: Math.round(Metrics.notifWidthBase * uiScale)
     readonly property int popupCount: (notificationHost && notificationService) ? notificationService.popupCount : 0
     readonly property bool hasVisiblePopups: popupCount > 0
-    readonly property real nonAnimHeight: popupCount > 0 ? content.implicitHeight + 24 : 0
+    readonly property real nonAnimHeight: popupCount > 0 ? content.implicitHeight + Math.round(Metrics.panelOuterPaddingBase * 2 * uiScale) : 0
 
     function dismissNotification(idx) {
         notificationService.dismissByIndex(idx)
@@ -34,7 +36,7 @@ Item {
 
     Behavior on height {
         NumberAnimation {
-            duration: 170
+            duration: Metrics.animDurationMid
             easing.type: Easing.InOutCubic
         }
     }
@@ -42,17 +44,18 @@ Item {
     ColumnLayout {
         id: content
         anchors.top: parent.top
-        anchors.topMargin: 12
+        anchors.topMargin: Math.round(Metrics.notifOuterPaddingBase * root.uiScale)
         anchors.left: parent.left
-        anchors.leftMargin: 12
+        anchors.leftMargin: Math.round(Metrics.notifOuterPaddingBase * root.uiScale)
         anchors.right: parent.right
-        anchors.rightMargin: 12
-        spacing: 10
+        anchors.rightMargin: Math.round(Metrics.notifOuterPaddingBase * root.uiScale)
+        spacing: Math.round(Metrics.notifCardGapBase * root.uiScale)
 
         Repeater {
             model: (root.notificationHost && root.notificationService) ? root.notificationService.model : null
 
             delegate: NotificationItem {
+                id: notifItem
                 required property int index
                 required property string appName
                 required property string ageText
@@ -68,9 +71,10 @@ Item {
                 required property bool popup
 
                 Layout.fillWidth: true
-                Layout.preferredHeight: popup ? implicitHeight : 0
+                Layout.preferredHeight: popup ? notifItem.implicitHeight : 0
                 visible: popup
                 notifIndex: index
+                notifUiScale: root.uiScale
                 notifAppName: sourceLine
                 notifAgeText: ageText
                 notifSummary: titleLine

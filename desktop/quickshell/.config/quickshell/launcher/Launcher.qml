@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import "LauncherLogic.js" as Logic
+import "../metrics"
 
 // qmllint disable uncreatable-type
 PanelWindow {
@@ -16,7 +17,10 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
-    implicitWidth: 640
+    property real uiScale: 1.0
+    // Fine-tune launcher size without changing base token values.
+    property real scaleBoost: 2.0
+    implicitWidth: Math.round(Metrics.launcherWidthBase * uiScale)
     implicitHeight: view.maxHeight
 
     property var allApps: []
@@ -152,6 +156,13 @@ PanelWindow {
 
     onVisibleChanged: {
         if (visible) {
+            const screenHeight = screen?.height ?? 1080;
+            const dpr = screen?.devicePixelRatio ?? 1.0;
+            const logicalDpi = screen?.logicalPixelDensity ?? 96;
+            const effectiveHeight = screenHeight * dpr;
+            const densityFactor = logicalDpi / 96;
+            const baseScale = Math.max(0.75, Math.min(2.0, (effectiveHeight / 1080) * densityFactor));
+            uiScale = Math.max(0.75, Math.min(4.0, baseScale * scaleBoost));
             view.resetPointerTracking();
             if (root.pendingAppsUpdate !== null) {
                 root.applyAppsUpdate(root.pendingAppsUpdate);
@@ -169,6 +180,13 @@ PanelWindow {
     }
 
     Component.onCompleted: {
+        const screenHeight = screen?.height ?? 1080;
+        const dpr = screen?.devicePixelRatio ?? 1.0;
+        const logicalDpi = screen?.logicalPixelDensity ?? 96;
+        const effectiveHeight = screenHeight * dpr;
+        const densityFactor = logicalDpi / 96;
+        const baseScale = Math.max(0.75, Math.min(2.0, (effectiveHeight / 1080) * densityFactor));
+        uiScale = Math.max(0.75, Math.min(4.0, baseScale * scaleBoost));
         appLoader.running = true;
         runtimeSync.running = true;
     }
@@ -176,6 +194,7 @@ PanelWindow {
     LauncherView {
         id: view
         anchors.fill: parent
+        uiScale: root.uiScale
         results: root.results
 
         onQueryChanged: root.refilterResetSelection()

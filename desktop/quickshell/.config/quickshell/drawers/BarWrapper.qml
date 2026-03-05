@@ -54,12 +54,14 @@ Item {
 
             Clock {
                 Layout.alignment: Qt.AlignVCenter
+                uiScale: root.resolutionScale
             }
 
             Item { Layout.fillWidth: true }
 
             SysTray {
                 Layout.alignment: Qt.AlignVCenter
+                uiScale: root.resolutionScale
                 powerMenuOpen: root.powerMenuOpen
                 settingsOpen: root.settingsOpen
                 onTogglePowerMenu: root.togglePowerMenu()

@@ -43,19 +43,19 @@ ShellRoot {
     IpcHandler {
         target: "notifications"
 
-        function setPlacementMode(mode) {
-            notifPlacement.mode = String(mode ?? "single").toLowerCase();
+        function setPlacementMode(mode: string): void {
+            notifPlacement.mode = String(mode).toLowerCase();
         }
 
-        function setPlacementScreen(screenName) {
-            notifPlacement.screenName = String(screenName ?? "");
+        function setPlacementScreen(screenName: string): void {
+            notifPlacement.screenName = String(screenName);
         }
 
-        function getPlacementMode() {
+        function getPlacementMode(): string {
             return notifPlacement.normalizedMode();
         }
 
-        function getPlacementScreen() {
+        function getPlacementScreen(): string {
             return notifPlacement.screenName;
         }
     }

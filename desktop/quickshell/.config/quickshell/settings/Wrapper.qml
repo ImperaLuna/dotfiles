@@ -2,18 +2,20 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import "../metrics"
 import "../theme"
 
 Item {
     id: root
 
     property bool open: false
+    required property real uiScale
     required property var placementConfig
     required property var allScreens
     signal closeRequested()
 
-    readonly property real nonAnimWidth: 360
-    readonly property real nonAnimHeight: content.implicitHeight + 24
+    readonly property real nonAnimWidth: Math.round(Metrics.settingsWidthBase * root.uiScale)
+    readonly property real nonAnimHeight: content.implicitHeight + Math.round(24 * root.uiScale)
     readonly property bool singleMode: (placementConfig?.normalizedMode?.() ?? "single") === "single"
 
     visible: opacity > 0
@@ -24,31 +26,31 @@ Item {
 
     Behavior on opacity {
         NumberAnimation {
-            duration: 140
+            duration: Metrics.animDurationButton
             easing.type: Easing.OutCubic
         }
     }
 
     Behavior on scale {
         NumberAnimation {
-            duration: 180
+            duration: Metrics.animDurationPanel
             easing.type: Easing.OutCubic
         }
     }
 
     Rectangle {
         anchors.fill: parent
-        radius: 16
+        radius: Math.round(Metrics.panelCornerRadiusBase * root.uiScale)
         color: Colors.surface0
-        border.width: 1
+        border.width: Math.max(1, Math.round(root.uiScale))
         border.color: Colors.overlay0
     }
 
     ColumnLayout {
         id: content
         anchors.fill: parent
-        anchors.margins: 12
-        spacing: 10
+        anchors.margins: Math.round(Metrics.panelOuterPaddingBase * root.uiScale)
+        spacing: Math.round(Metrics.panelRowGapBase * root.uiScale)
 
         RowLayout {
             Layout.fillWidth: true
@@ -57,7 +59,7 @@ Item {
                 text: "Settings (Placeholder)"
                 color: Colors.text
                 font.family: Fonts.text
-                font.pixelSize: 13
+                font.pixelSize: Math.round(13 * root.uiScale)
                 font.bold: true
             }
 
@@ -67,7 +69,7 @@ Item {
                 text: "close"
                 color: Colors.subtext0
                 font.family: Fonts.symbols
-                font.pixelSize: 18
+                font.pixelSize: Math.round(18 * root.uiScale)
 
                 MouseArea {
                     anchors.fill: parent
@@ -82,12 +84,12 @@ Item {
             text: "Notification Placement"
             color: Colors.subtext1
             font.family: Fonts.text
-            font.pixelSize: 11
+            font.pixelSize: Math.round(11 * root.uiScale)
         }
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 8
+            spacing: Math.round(8 * root.uiScale)
 
             ModeButton {
                 text: "Single"
@@ -111,18 +113,18 @@ Item {
         ColumnLayout {
             visible: root.singleMode
             Layout.fillWidth: true
-            spacing: 6
+            spacing: Math.round(6 * root.uiScale)
 
             Text {
                 text: "Screen"
                 color: Colors.subtext1
                 font.family: Fonts.text
-                font.pixelSize: 11
+                font.pixelSize: Math.round(11 * root.uiScale)
             }
 
             Flow {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: Math.round(6 * root.uiScale)
 
                 Repeater {
                     model: root.allScreens ?? []
@@ -147,8 +149,8 @@ Item {
         signal clicked()
 
         radius: 10
-        implicitWidth: label.implicitWidth + 16
-        implicitHeight: 28
+        implicitWidth: label.implicitWidth + Math.round(16 * root.uiScale)
+        implicitHeight: Math.round(28 * root.uiScale)
         color: active ? Colors.blue : Colors.surface1
 
         Text {
@@ -157,7 +159,7 @@ Item {
             text: modeButton.text
             color: modeButton.active ? Colors.crust : Colors.text
             font.family: Fonts.text
-            font.pixelSize: 11
+            font.pixelSize: Math.round(11 * root.uiScale)
             font.bold: modeButton.active
         }
 
@@ -176,8 +178,8 @@ Item {
         signal clicked()
 
         radius: 8
-        implicitWidth: screenLabel.implicitWidth + 14
-        implicitHeight: 24
+        implicitWidth: screenLabel.implicitWidth + Math.round(14 * root.uiScale)
+        implicitHeight: Math.round(24 * root.uiScale)
         color: active ? Colors.teal : Colors.surface1
 
         Text {
@@ -186,7 +188,7 @@ Item {
             text: screenButton.screenName
             color: screenButton.active ? Colors.crust : Colors.text
             font.family: Fonts.text
-            font.pixelSize: 10
+            font.pixelSize: Math.round(10 * root.uiScale)
             font.bold: screenButton.active
         }
 
