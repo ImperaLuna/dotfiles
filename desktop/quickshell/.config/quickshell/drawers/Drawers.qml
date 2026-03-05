@@ -12,6 +12,10 @@ PanelWindow {
     id: root
 
     required property var screenModel
+    required property var notificationService
+    required property var notificationPlacement
+    required property var allScreens
+    required property bool notificationHost
 
     color: "transparent"
     exclusiveZone: 0
@@ -39,6 +43,7 @@ PanelWindow {
     property color chromeColor: Colors.base
     property bool powerMenuOpen: false
     property bool notificationOpen: false
+    property bool settingsOpen: false
     readonly property real rightPanelWidth: Math.max(panels.powerMenu.width, panels.notifications.visible ? panels.notifications.width : 0)
 
     ChromeGeometry {
@@ -78,6 +83,14 @@ PanelWindow {
             height: geometry.barStripHeight
             intersection: Intersection.Combine
         }
+
+        Region {
+            x: panels.settings.x
+            y: panels.settings.y
+            width: panels.settings.visible ? panels.settings.width : 0
+            height: panels.settings.visible ? panels.settings.height : 0
+            intersection: Intersection.Combine
+        }
     }
 
     Panels {
@@ -85,6 +98,10 @@ PanelWindow {
         z: 2
 
         screenModel: root.screenModel
+        notificationService: root.notificationService
+        notificationPlacement: root.notificationPlacement
+        allScreens: root.allScreens
+        notificationHost: root.notificationHost
         resolutionScale: root.resolutionScale
         inset: root.inset
         cornerRadius: root.cornerRadius
@@ -93,10 +110,13 @@ PanelWindow {
         chromeColor: root.chromeColor
         powerMenuOpen: root.powerMenuOpen
         notificationOpen: root.notificationOpen
+        settingsOpen: root.settingsOpen
         onTogglePowerMenu: root.powerMenuOpen = !root.powerMenuOpen
         onClosePowerMenu: root.powerMenuOpen = false
         onToggleNotification: root.notificationOpen = !root.notificationOpen
         onCloseNotification: root.notificationOpen = false
+        onToggleSettings: root.settingsOpen = !root.settingsOpen
+        onCloseSettings: root.settingsOpen = false
     }
 
     Shape {

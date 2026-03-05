@@ -17,9 +17,9 @@ Item {
     readonly property int barPadding: Math.max(6, Math.round(Metrics.barPaddingBase * resolutionScale))
     readonly property int sectionGap: Math.max(2, Math.round(Metrics.sectionGapBase * resolutionScale))
     property bool powerMenuOpen: false
-    property bool notificationOpen: false
+    property bool settingsOpen: false
     signal togglePowerMenu()
-    signal toggleNotification()
+    signal toggleSettings()
 
     implicitHeight: barHeight
 
@@ -61,9 +61,9 @@ Item {
             SysTray {
                 Layout.alignment: Qt.AlignVCenter
                 powerMenuOpen: root.powerMenuOpen
-                notificationOpen: root.notificationOpen
+                settingsOpen: root.settingsOpen
                 onTogglePowerMenu: root.togglePowerMenu()
-                onTriggerTest: root.toggleNotification()
+                onTriggerTest: root.toggleSettings()
             }
         }
     }

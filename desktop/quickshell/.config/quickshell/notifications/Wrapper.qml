@@ -6,24 +6,30 @@ import QtQuick.Layouts
 Item {
     id: root
 
+    required property var notificationService
+    required property bool notificationHost
     property bool open: false
     signal closeRequested()
     readonly property real nonAnimWidth: 320
-    readonly property real nonAnimHeight: content.implicitHeight + 24
+    readonly property int popupCount: (notificationHost && notificationService) ? notificationService.popupCount : 0
+    readonly property bool hasVisiblePopups: popupCount > 0
+    readonly property real nonAnimHeight: popupCount > 0 ? content.implicitHeight + 24 : 0
 
     function dismissNotification(idx) {
-        notifs.remove(idx, 1)
-        if (notifs.count === 0)
-            root.closeRequested()
+        notificationService.dismissByIndex(idx)
     }
 
     function setExpanded(idx, value) {
-        notifs.setProperty(idx, "expanded", value)
+        notificationService.setExpanded(idx, value)
+    }
+
+    function setHovered(idx, hovered) {
+        notificationService.setHovered(idx, hovered)
     }
 
     visible: height > 0
     width: nonAnimWidth
-    height: open ? nonAnimHeight : 0
+    height: (open || hasVisiblePopups) && hasVisiblePopups ? nonAnimHeight : 0
     clip: true
 
     Behavior on height {
@@ -43,31 +49,46 @@ Item {
         anchors.rightMargin: 12
         spacing: 10
 
-        NotifModel {
-            id: notifs
-        }
-
         Repeater {
-            model: notifs
+            model: (root.notificationHost && root.notificationService) ? root.notificationService.model : null
 
             delegate: NotificationItem {
                 required property int index
                 required property string appName
                 required property string ageText
+                required property string sourceLine
+                required property string titleLine
+                required property string previewLine
                 required property string summary
+                required property string body
                 required property string iconSource
+                required property string imageSource
+                required property bool hasPrimaryAction
                 required property bool expanded
+                required property bool popup
 
                 Layout.fillWidth: true
+                Layout.preferredHeight: popup ? implicitHeight : 0
+                visible: popup
                 notifIndex: index
-                notifAppName: appName
+                notifAppName: sourceLine
                 notifAgeText: ageText
-                notifSummary: summary
+                notifSummary: titleLine
+                notifBody: previewLine
                 notifIconSource: iconSource
+                notifImageSource: imageSource
+                notifHasPrimaryAction: hasPrimaryAction
                 notifExpanded: expanded
                 onToggleRequested: function(idx, value) { root.setExpanded(idx, value) }
                 onDismissRequested: function(idx) { root.dismissNotification(idx) }
+                onActivateRequested: function(idx) { root.notificationService.invokePrimaryAction(idx) }
+                onHoverChanged: function(idx, hovered) { root.setHovered(idx, hovered) }
             }
         }
+    }
+
+    onPopupCountChanged: {
+        if (root.popupCount === 0)
+            root.closeRequested();
     }
 }

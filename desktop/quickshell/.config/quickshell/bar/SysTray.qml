@@ -7,7 +7,7 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
     property bool powerMenuOpen: false
-    property bool notificationOpen: false
+    property bool settingsOpen: false
     signal togglePowerMenu()
     signal triggerTest()
 
@@ -21,7 +21,7 @@ Item {
             width: 22
             height: 22
             radius: 6
-            color: root.notificationOpen ? Colors.teal : (testArea.containsMouse ? Colors.teal : Colors.green)
+            color: root.settingsOpen ? Colors.teal : (testArea.containsMouse ? Colors.teal : Colors.green)
 
             MouseArea {
                 id: testArea
