@@ -34,18 +34,20 @@ PanelWindow {
     property real barCornerFactor: 0.75
     property int barCornerRadius: Math.max(1, Math.round(cornerRadius * barCornerFactor))
     property int inset: 0
-    property color borderColor: Colors.base
+    property color chromeColor: "#ffffff"
     property bool sessionOpen: false
+    property bool notificationOpen: false
+    readonly property real rightPanelWidth: Math.max(panels.session.width, panels.notifications.visible ? panels.notifications.width : 0)
 
     Exclusions {
         screenModel: root.screenModel
         topReserved: root.inset + panels.bar.implicitHeight
-        sideReserved: root.inset + root.borderWidth
+        leftReserved: root.inset + root.borderWidth
+        rightReserved: root.inset + root.borderWidth
         bottomReserved: root.inset + root.borderWidth
     }
 
     // Caelestia-like composition: one window that owns bar + border.
-    // This makes future top-edge dashboard slide panels straightforward.
     mask: Region {
         x: 0
         y: 0
@@ -55,7 +57,7 @@ PanelWindow {
         Region {
             x: root.inset + root.borderWidth
             y: root.inset + panels.bar.implicitHeight
-            width: Math.max(0, root.width - (root.inset + root.borderWidth) * 2 - panels.session.width)
+            width: Math.max(0, root.width - (root.inset + root.borderWidth) * 2 - root.rightPanelWidth)
             height: Math.max(0, root.height - root.inset - panels.bar.implicitHeight - root.borderWidth)
             intersection: Intersection.Subtract
         }
@@ -79,9 +81,13 @@ PanelWindow {
         cornerRadius: root.cornerRadius
         barCornerRadius: root.barCornerRadius
         borderWidth: root.borderWidth
+        chromeColor: root.chromeColor
         sessionOpen: root.sessionOpen
+        notificationOpen: root.notificationOpen
         onToggleSession: root.sessionOpen = !root.sessionOpen
         onCloseSession: root.sessionOpen = false
+        onToggleNotification: root.notificationOpen = !root.notificationOpen
+        onCloseNotification: root.notificationOpen = false
     }
 
     Shape {
@@ -99,6 +105,14 @@ PanelWindow {
             startX: panelBackgrounds.width
             startY: (panelBackgrounds.height - wrapper.height) / 2 - rounding
         }
+
+        NotificationBackground {
+            wrapper: panels.notifications
+            rounding: Math.round(root.cornerRadius * 1.5)
+
+            startX: panelBackgrounds.width
+            startY: panels.notifications.y - (root.inset + root.borderWidth) - rounding
+        }
     }
 
     Border {
@@ -112,6 +126,6 @@ PanelWindow {
         cornerRadius: root.cornerRadius
         barHeight: panels.bar.implicitHeight
         inset: root.inset
-        borderColor: root.borderColor
+        borderColor: root.chromeColor
     }
 }

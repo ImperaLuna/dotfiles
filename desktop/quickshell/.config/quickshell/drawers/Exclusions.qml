@@ -7,7 +7,8 @@ Scope {
 
     required property var screenModel
     required property int topReserved
-    required property int sideReserved
+    required property int leftReserved
+    required property int rightReserved
     required property int bottomReserved
 
     // Top reserved area (bar region)
@@ -31,7 +32,7 @@ Scope {
         screen: root.screenModel
         color: "transparent"
         implicitWidth: 1
-        exclusiveZone: root.sideReserved
+        exclusiveZone: root.leftReserved
         anchors {
             top: true
             bottom: true
@@ -47,7 +48,7 @@ Scope {
         screen: root.screenModel
         color: "transparent"
         implicitWidth: 1
-        exclusiveZone: root.sideReserved
+        exclusiveZone: root.rightReserved
         anchors {
             top: true
             bottom: true

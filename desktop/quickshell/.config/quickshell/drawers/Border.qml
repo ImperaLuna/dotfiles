@@ -42,7 +42,6 @@ Item {
             anchors.leftMargin: root.borderWidth
             anchors.rightMargin: root.borderWidth
             anchors.bottomMargin: root.borderWidth
-            // Carve below the top bar, equivalent to Caelestia's left-bar carve.
             anchors.topMargin: root.barHeight
             radius: Math.max(0, root.cornerRadius)
             color: "black"

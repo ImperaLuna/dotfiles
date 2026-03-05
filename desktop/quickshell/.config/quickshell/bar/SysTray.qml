@@ -7,6 +7,7 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
     property bool sessionOpen: false
+    property bool notificationOpen: false
     signal toggleSession()
     signal triggerTest()
 
@@ -20,7 +21,7 @@ Item {
             width: 22
             height: 22
             radius: 6
-            color: testArea.containsMouse ? Colors.teal : Colors.green
+            color: root.notificationOpen ? Colors.teal : (testArea.containsMouse ? Colors.teal : Colors.green)
 
             MouseArea {
                 id: testArea

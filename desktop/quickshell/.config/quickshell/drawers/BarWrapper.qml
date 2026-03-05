@@ -11,19 +11,22 @@ Item {
     required property int inset
     required property int cornerRadius
     required property int barCornerRadius
+    required property color barColor
 
     readonly property int barHeight: Math.max(20, Math.round(Metrics.barHeightBase * resolutionScale))
     readonly property int barPadding: Math.max(6, Math.round(Metrics.barPaddingBase * resolutionScale))
     readonly property int sectionGap: Math.max(2, Math.round(Metrics.sectionGapBase * resolutionScale))
     property bool sessionOpen: false
+    property bool notificationOpen: false
     signal toggleSession()
+    signal toggleNotification()
 
     implicitHeight: barHeight
 
     Rectangle {
         id: bar
         anchors.fill: parent
-        color: Colors.base
+        color: root.barColor
         radius: 0
         topLeftRadius: root.barCornerRadius
         topRightRadius: root.barCornerRadius
@@ -35,6 +38,7 @@ Item {
                 leftMargin: root.barPadding
                 rightMargin: root.barPadding
             }
+            spacing: root.sectionGap
 
             Workspaces {
                 monitorName: root.screenModel.name
@@ -47,13 +51,19 @@ Item {
             }
 
             Item { Layout.fillWidth: true }
-            Clock {}
+
+            Clock {
+                Layout.alignment: Qt.AlignVCenter
+            }
+
             Item { Layout.fillWidth: true }
 
             SysTray {
+                Layout.alignment: Qt.AlignVCenter
                 sessionOpen: root.sessionOpen
+                notificationOpen: root.notificationOpen
                 onToggleSession: root.toggleSession()
-                onTriggerTest: console.log("Notification test button pressed")
+                onTriggerTest: root.toggleNotification()
             }
         }
     }
