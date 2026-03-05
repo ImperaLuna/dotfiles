@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../metrics"
 import "../theme"
 
 Rectangle {
@@ -23,12 +24,12 @@ Rectangle {
     readonly property bool hasPreviewImage: notifImageSource.length > 0
     readonly property bool hasAppIcon: notifIconSource.length > 0
     readonly property bool hasVisualIcon: hasPreviewImage || hasAppIcon
-    readonly property bool hasBodyText: notifBody.trim().length > 0
+    readonly property bool hasBodyText: String(notifBody ?? "").length > 0
     readonly property bool centerCompactContent: !notifExpanded && !hasBodyText
     readonly property int actionRowHeight: notifExpanded ? Math.round(24 * root.notifUiScale) : 0
     readonly property int actionRowGap: notifExpanded ? Math.round(8 * root.notifUiScale) : 0
     readonly property int minContentHeight: Math.round(36 * root.notifUiScale)
-    readonly property int maxBodyViewportHeight: Math.round(108 * root.notifUiScale)
+    readonly property int maxExpandedBodyHeight: Math.round(180 * root.notifUiScale)
 
     radius: Math.round(16 * root.notifUiScale)
     color: Colors.surface0
@@ -85,40 +86,48 @@ Rectangle {
             Layout.alignment: root.centerCompactContent ? Qt.AlignVCenter : Qt.AlignTop
             spacing: 4
 
-            RowLayout {
+            Item {
+                id: headerBlock
                 Layout.fillWidth: true
-                spacing: Math.round(6 * root.notifUiScale)
-                visible: root.notifExpanded
+                implicitHeight: root.notifExpanded ? appName.implicitHeight + summary.implicitHeight + Math.round(2 * root.notifUiScale) : summary.implicitHeight
 
                 Text {
-                    text: root.notifAppName
+                    id: appName
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    width: appNameMetrics.elideWidth
+                    text: appNameMetrics.elidedText
                     color: Colors.subtext0
                     font.family: Fonts.text
                     font.pixelSize: Math.round(10 * root.notifUiScale)
                     font.bold: true
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                    opacity: root.notifExpanded ? 1 : 0
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Metrics.animDurationMid
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+
+                TextMetrics {
+                    id: appNameMetrics
+                    text: root.notifAppName
+                    font.family: appName.font.family
+                    font.pixelSize: appName.font.pixelSize
+                    elide: Text.ElideRight
+                    elideWidth: Math.max(0, expandToggle.x - timeText.implicitWidth - timeSep.implicitWidth - appName.x - Math.round(12 * root.notifUiScale))
                 }
 
                 Text {
-                    text: "•"
-                    color: Colors.subtext0
-                    font.pixelSize: Math.round(10 * root.notifUiScale)
-                }
-
-                Text {
-                    text: root.notifAgeText
-                    color: Colors.subtext0
-                    font.family: Fonts.text
-                    font.pixelSize: Math.round(10 * root.notifUiScale)
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Math.round(6 * root.notifUiScale)
-
-                Text {
-                    Layout.fillWidth: true
-                    text: root.notifSummary
+                    id: summary
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    width: summaryMetrics.elideWidth
+                    text: summaryMetrics.elidedText
                     color: Colors.text
                     font.family: Fonts.text
                     font.pixelSize: Math.round(11 * root.notifUiScale)
@@ -128,27 +137,67 @@ Rectangle {
                     elide: Text.ElideRight
                 }
 
+                TextMetrics {
+                    id: summaryMetrics
+                    text: root.notifSummary
+                    font.family: summary.font.family
+                    font.pixelSize: summary.font.pixelSize
+                    elide: Text.ElideRight
+                    elideWidth: Math.max(0, expandToggle.x - timeText.implicitWidth - timeSep.implicitWidth - summary.x - Math.round(12 * root.notifUiScale))
+                }
+
                 Text {
-                    visible: !root.notifExpanded
+                    id: timeSep
+                    anchors.top: summary.top
+                    anchors.left: summary.right
+                    anchors.leftMargin: Math.round(4 * root.notifUiScale)
                     text: "•"
                     color: Colors.subtext0
                     font.pixelSize: Math.round(10 * root.notifUiScale)
                 }
 
                 Text {
-                    visible: !root.notifExpanded
+                    id: timeText
+                    anchors.top: timeSep.top
+                    anchors.left: timeSep.right
+                    anchors.leftMargin: Math.round(4 * root.notifUiScale)
                     text: root.notifAgeText
                     color: Colors.subtext0
                     font.family: Fonts.text
                     font.pixelSize: Math.round(10 * root.notifUiScale)
                 }
 
+                states: State {
+                    name: "expanded"
+                    when: root.notifExpanded
+
+                    AnchorChanges {
+                        target: summary
+                        anchors.top: appName.bottom
+                    }
+
+                    AnchorChanges {
+                        target: timeSep
+                        anchors.top: appName.top
+                        anchors.left: appName.right
+                    }
+                }
+
+                transitions: Transition {
+                    AnchorAnimation {
+                        duration: Metrics.animDurationMid
+                        easing.type: Easing.InOutCubic
+                    }
+                }
             }
 
             Item {
+                id: bodyContainer
                 Layout.fillWidth: true
                 visible: root.hasBodyText
-                implicitHeight: root.notifExpanded ? Math.min(bodyText.implicitHeight, root.maxBodyViewportHeight) : bodyText.implicitHeight
+                readonly property bool bodyOverflow: bodyText.implicitHeight > root.maxExpandedBodyHeight
+                implicitHeight: root.notifExpanded ? Math.min(bodyText.implicitHeight, root.maxExpandedBodyHeight) : bodyText.implicitHeight
+                clip: true
 
                 Flickable {
                     id: bodyFlick
@@ -156,7 +205,7 @@ Rectangle {
                     clip: true
                     contentWidth: width
                     contentHeight: bodyText.implicitHeight
-                    interactive: root.notifExpanded && contentHeight > height
+                    interactive: root.notifExpanded && bodyContainer.bodyOverflow
                     boundsBehavior: Flickable.StopAtBounds
 
                     Text {
@@ -172,7 +221,7 @@ Rectangle {
                     }
 
                     ScrollBar.vertical: ScrollBar {
-                        policy: root.notifExpanded ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+                        policy: root.notifExpanded && bodyContainer.bodyOverflow ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
                         width: Math.max(4, Math.round(4 * root.notifUiScale))
                         contentItem: Rectangle {
                             implicitWidth: parent.width
@@ -197,11 +246,20 @@ Rectangle {
         anchors.topMargin: Math.round(8 * root.notifUiScale)
         anchors.right: parent.right
         anchors.rightMargin: Math.round(10 * root.notifUiScale)
-        text: root.notifExpanded ? "expand_less" : "expand_more"
+        text: "expand_more"
         color: Colors.subtext0
         font.family: Fonts.symbols
         font.pixelSize: Math.round(15 * root.notifUiScale)
         font.weight: 600
+        rotation: root.notifExpanded ? 180 : 0
+        transformOrigin: Item.Center
+
+        Behavior on rotation {
+            NumberAnimation {
+                duration: Metrics.animDurationMid
+                easing.type: Easing.InOutCubic
+            }
+        }
 
         MouseArea {
             anchors.fill: parent
