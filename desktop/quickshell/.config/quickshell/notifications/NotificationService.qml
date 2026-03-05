@@ -219,7 +219,16 @@ sys.exit(1)
     }
 
     function removeState(state, dismissServer) {
-        removeAt(state.modelIndex, dismissServer);
+        if (!state)
+            return;
+
+        let idx = state.modelIndex;
+        if (idx < 0 || idx >= states.length || states[idx] !== state)
+            idx = states.indexOf(state);
+        if (idx < 0)
+            return;
+
+        removeAt(idx, dismissServer);
     }
 
     function removeAt(index, dismissServer) {
@@ -227,12 +236,13 @@ sys.exit(1)
             return;
 
         const state = states[index];
-        if (!state)
+        if (!state || state.modelIndex !== index)
             return;
 
+        let notificationToDismiss = null;
         if (dismissServer && !state.closing && state.notification) {
             state.closing = true;
-            state.notification.dismiss();
+            notificationToDismiss = state.notification;
         }
 
         store.remove(index, 1);
@@ -244,6 +254,13 @@ sys.exit(1)
             states[i].modelIndex = i;
 
         recalcPopupCount();
+
+        if (notificationToDismiss) {
+            try {
+                notificationToDismiss.dismiss();
+            } catch (_err) {
+            }
+        }
     }
 
     function dismissByIndex(index) {

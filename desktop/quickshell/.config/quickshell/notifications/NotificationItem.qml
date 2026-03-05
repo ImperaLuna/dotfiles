@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import "../theme"
 
@@ -27,6 +28,7 @@ Rectangle {
     readonly property int actionRowHeight: notifExpanded ? Math.round(24 * root.notifUiScale) : 0
     readonly property int actionRowGap: notifExpanded ? Math.round(8 * root.notifUiScale) : 0
     readonly property int minContentHeight: Math.round(36 * root.notifUiScale)
+    readonly property int maxBodyViewportHeight: Math.round(108 * root.notifUiScale)
 
     radius: Math.round(16 * root.notifUiScale)
     color: Colors.surface0
@@ -143,16 +145,48 @@ Rectangle {
 
             }
 
-            Text {
+            Item {
                 Layout.fillWidth: true
                 visible: root.hasBodyText
-                text: root.notifBody
-                wrapMode: Text.WordWrap
-                maximumLineCount: root.notifExpanded ? 8 : 1
-                elide: Text.ElideRight
-                color: Colors.subtext1
-                font.family: Fonts.text
-                font.pixelSize: Math.round(11 * root.notifUiScale)
+                implicitHeight: root.notifExpanded ? Math.min(bodyText.implicitHeight, root.maxBodyViewportHeight) : bodyText.implicitHeight
+
+                Flickable {
+                    id: bodyFlick
+                    anchors.fill: parent
+                    clip: true
+                    contentWidth: width
+                    contentHeight: bodyText.implicitHeight
+                    interactive: root.notifExpanded && contentHeight > height
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    Text {
+                        id: bodyText
+                        width: bodyFlick.width
+                        text: root.notifBody
+                        wrapMode: Text.WordWrap
+                        maximumLineCount: root.notifExpanded ? 0 : 1
+                        elide: root.notifExpanded ? Text.ElideNone : Text.ElideRight
+                        color: Colors.subtext1
+                        font.family: Fonts.text
+                        font.pixelSize: Math.round(11 * root.notifUiScale)
+                    }
+
+                    ScrollBar.vertical: ScrollBar {
+                        policy: root.notifExpanded ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+                        width: Math.max(4, Math.round(4 * root.notifUiScale))
+                        contentItem: Rectangle {
+                            implicitWidth: parent.width
+                            radius: width / 2
+                            color: Colors.overlay1
+                            opacity: 0.75
+                        }
+                        background: Rectangle {
+                            radius: width / 2
+                            color: Colors.surface1
+                            opacity: 0.35
+                        }
+                    }
+                }
             }
         }
     }
