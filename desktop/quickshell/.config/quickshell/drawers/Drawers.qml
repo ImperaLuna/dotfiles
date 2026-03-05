@@ -34,7 +34,7 @@ PanelWindow {
     property real barCornerFactor: 0.75
     property int barCornerRadius: Math.max(1, Math.round(cornerRadius * barCornerFactor))
     property int inset: 0
-    property color chromeColor: "#ffffff"
+    property color chromeColor: Colors.test
     property bool sessionOpen: false
     property bool notificationOpen: false
     readonly property real rightPanelWidth: Math.max(panels.session.width, panels.notifications.visible ? panels.notifications.width : 0)
@@ -111,7 +111,7 @@ PanelWindow {
             rounding: Math.round(root.cornerRadius * 1.5)
 
             startX: panelBackgrounds.width
-            startY: panels.notifications.y - (root.inset + root.borderWidth) - rounding
+            startY: panels.notifications.y - (root.inset + root.borderWidth)
         }
     }
 

@@ -66,7 +66,7 @@ Item {
         onCloseRequested: root.closeNotification()
         anchors {
             top: parent.top
-            topMargin: root.inset + root.borderWidth + bar.implicitHeight
+            topMargin: root.inset + bar.implicitHeight
             right: parent.right
             rightMargin: root.inset + root.borderWidth
         }

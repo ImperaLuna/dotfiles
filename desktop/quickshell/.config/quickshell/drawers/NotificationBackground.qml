@@ -7,48 +7,42 @@ ShapePath {
 
     required property Item wrapper
     property real rounding: 16
-    readonly property bool flatten: wrapper.width < rounding * 2
-    readonly property real roundingX: flatten ? wrapper.width / 2 : rounding
+    readonly property bool hasArea: wrapper.visible && wrapper.width > 1 && wrapper.height > 1
+    readonly property bool flatten: wrapper.height < rounding * 2
+    readonly property real roundingY: flatten ? wrapper.height / 2 : rounding
 
     strokeWidth: -1
-    fillColor: Colors.mantle
+    fillColor: root.hasArea ? Colors.test : "transparent"
 
-    PathArc {
-        relativeX: -root.roundingX
-        relativeY: root.rounding
-        radiusX: Math.min(root.rounding, root.wrapper.width)
-        radiusY: root.rounding
-    }
     PathLine {
-        relativeX: -(root.wrapper.width - root.roundingX * 2)
+        relativeX: -(root.wrapper.width + root.rounding)
         relativeY: 0
     }
     PathArc {
-        relativeX: -root.roundingX
-        relativeY: root.rounding
-        radiusX: Math.min(root.rounding, root.wrapper.width)
-        radiusY: root.rounding
-        direction: PathArc.Counterclockwise
+        relativeX: root.rounding
+        relativeY: root.roundingY
+        radiusX: root.rounding
+        radiusY: Math.min(root.rounding, root.wrapper.height)
     }
     PathLine {
         relativeX: 0
-        relativeY: root.wrapper.height - root.rounding * 2
+        relativeY: root.wrapper.height - root.roundingY * 2
     }
     PathArc {
-        relativeX: root.roundingX
-        relativeY: root.rounding
-        radiusX: Math.min(root.rounding, root.wrapper.width)
-        radiusY: root.rounding
+        relativeX: root.rounding
+        relativeY: root.roundingY
+        radiusX: root.rounding
+        radiusY: Math.min(root.rounding, root.wrapper.height)
         direction: PathArc.Counterclockwise
     }
     PathLine {
-        relativeX: root.wrapper.width - root.roundingX * 2
+        relativeX: root.wrapper.height > 0 ? root.wrapper.width - root.rounding * 2 : root.wrapper.width
         relativeY: 0
     }
     PathArc {
-        relativeX: root.roundingX
+        relativeX: root.rounding
         relativeY: root.rounding
-        radiusX: Math.min(root.rounding, root.wrapper.width)
+        radiusX: root.rounding
         radiusY: root.rounding
     }
 }
