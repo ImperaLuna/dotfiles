@@ -85,11 +85,32 @@ Do not put panel background rectangles inside feature wrappers if the feature is
 ## Scaling Rule
 
 - Avoid hardcoded pixel literals in feature UIs (`launcher/`, `notifications/`, and new modules).
-- Size values should be derived from monitor scale (`screen.height / 1080` clamped) or shared metrics tokens.
-- When adding a new component:
-  - expose a `uiScale`/`resolutionScale` input, and
-  - multiply spacing/radius/font/width/height by that scale.
-- Reason: fixed px causes mismatched UI size across mixed-resolution monitors.
+- Use shared metrics tokens from `metrics/Metrics.qml` and multiply by scale.
+- Single source of truth for user scaling is `uiSettings.scale` in `shell.qml`.
+- Persisted key is `ui_scale` in `~/.local/state/quickshell/runtime.json` (via `launcher/runtime-config.py`).
+
+### Required scaling pattern
+
+1. Compute per-monitor factor in `drawers/Drawers.qml`:
+   - `monitorScale = clamp(screenModel.height / 1080, 0.75..1.5)`
+2. Compute effective per-screen UI scale:
+   - `resolutionScale = monitorScale * uiSettings.scale`
+3. Pass `resolutionScale` into feature wrappers as `uiScale`/`resolutionScale`.
+4. Inside each feature, scale spacing/radius/font/width/height from that input.
+
+### Launcher rule
+
+- Launcher is a single overlay window, not one `Drawers` instance per monitor.
+- Launcher must:
+  1. bind to focused monitor before sizing (`syncToFocusedScreen()`), and
+  2. include `globalUiScale` in `computeUiScale()`.
+- Do not introduce a separate launcher-only user scale setting.
+
+### Architecture intent
+
+- `shell.qml` owns global user settings/state.
+- `drawers/Drawers.qml` owns monitor-aware scaling derivation.
+- Feature modules consume scale only via inputs (`uiScale`/`resolutionScale`), not by reading monitor globals directly.
 
 ## Caelestia Inspiration / Reference
 

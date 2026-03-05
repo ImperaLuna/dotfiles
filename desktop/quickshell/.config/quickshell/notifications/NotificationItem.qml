@@ -22,52 +22,47 @@ Rectangle {
     readonly property bool hasPreviewImage: notifImageSource.length > 0
     readonly property bool hasAppIcon: notifIconSource.length > 0
     readonly property bool hasVisualIcon: hasPreviewImage || hasAppIcon
+    readonly property bool hasBodyText: notifBody.trim().length > 0
+    readonly property bool centerCompactContent: !notifExpanded && !hasBodyText
     readonly property int actionRowHeight: notifExpanded ? Math.round(24 * root.notifUiScale) : 0
     readonly property int actionRowGap: notifExpanded ? Math.round(8 * root.notifUiScale) : 0
+    readonly property int minContentHeight: Math.round(36 * root.notifUiScale)
 
     radius: Math.round(16 * root.notifUiScale)
     color: Colors.surface0
     border.width: Math.max(1, Math.round(root.notifUiScale))
     border.color: Colors.overlay0
-    implicitHeight: Math.max(contentColumn.implicitHeight, avatarFrame.implicitHeight) + Math.round(16 * root.notifUiScale) + actionRowGap + actionRowHeight
+    implicitHeight: Math.max(Math.max(contentColumn.implicitHeight, avatarFrame.implicitHeight), minContentHeight) + Math.round(16 * root.notifUiScale) + actionRowGap + actionRowHeight
 
     RowLayout {
         anchors.fill: parent
         anchors.leftMargin: Math.round(12 * root.notifUiScale)
         anchors.rightMargin: Math.round(30 * root.notifUiScale)
-        anchors.topMargin: Math.round(8 * root.notifUiScale)
-        anchors.bottomMargin: Math.round(8 * root.notifUiScale) + root.actionRowGap + root.actionRowHeight
+        anchors.topMargin: Math.round(7 * root.notifUiScale)
+        anchors.bottomMargin: Math.round(9 * root.notifUiScale) + root.actionRowGap + root.actionRowHeight
         spacing: Math.round(10 * root.notifUiScale)
 
         Rectangle {
             id: avatarFrame
-            Layout.alignment: Qt.AlignTop
-            Layout.preferredWidth: root.hasPreviewImage ? Math.round(44 * root.notifUiScale) : Math.round(30 * root.notifUiScale)
-            Layout.preferredHeight: root.hasPreviewImage ? Math.round(44 * root.notifUiScale) : Math.round(30 * root.notifUiScale)
-            radius: root.hasVisualIcon ? 0 : 15
+            Layout.alignment: root.centerCompactContent ? Qt.AlignVCenter : Qt.AlignTop
+            Layout.preferredWidth: root.hasPreviewImage ? Math.round(36 * root.notifUiScale) : Math.round(30 * root.notifUiScale)
+            Layout.preferredHeight: root.hasPreviewImage ? Math.round(36 * root.notifUiScale) : Math.round(30 * root.notifUiScale)
+            radius: root.hasPreviewImage ? Math.round(9 * root.notifUiScale) : Math.round(15 * root.notifUiScale)
             color: root.hasVisualIcon ? "transparent" : Colors.surface0
             border.width: root.hasVisualIcon ? 0 : 1
             border.color: Colors.overlay0
-            clip: !root.hasVisualIcon
+            clip: true
 
-            Rectangle {
+            Image {
                 anchors.fill: parent
-                anchors.margins: 0
-                radius: 0
-                color: "transparent"
-                clip: false
+                source: root.hasPreviewImage ? root.notifImageSource : root.notifIconSource
+                asynchronous: true
+                smooth: true
+                mipmap: true
+                fillMode: root.hasPreviewImage ? Image.PreserveAspectCrop : Image.PreserveAspectFit
+                sourceSize.width: Math.round(width * 2)
+                sourceSize.height: Math.round(height * 2)
                 visible: root.hasVisualIcon
-
-                Image {
-                    anchors.fill: parent
-                    source: root.hasPreviewImage ? root.notifImageSource : root.notifIconSource
-                    asynchronous: true
-                    smooth: true
-                    mipmap: true
-                    fillMode: root.hasPreviewImage ? Image.PreserveAspectCrop : Image.PreserveAspectFit
-                    scale: 1.0
-                    transformOrigin: Item.Center
-                }
             }
 
             Text {
@@ -85,7 +80,7 @@ Rectangle {
         ColumnLayout {
             id: contentColumn
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignTop
+            Layout.alignment: root.centerCompactContent ? Qt.AlignVCenter : Qt.AlignTop
             spacing: 4
 
             RowLayout {
@@ -150,7 +145,7 @@ Rectangle {
 
             Text {
                 Layout.fillWidth: true
-                visible: root.notifBody.length > 0
+                visible: root.hasBodyText
                 text: root.notifBody
                 wrapMode: Text.WordWrap
                 maximumLineCount: root.notifExpanded ? 8 : 1
