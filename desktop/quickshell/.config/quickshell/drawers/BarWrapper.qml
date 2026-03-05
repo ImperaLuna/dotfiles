@@ -53,6 +53,7 @@ Item {
             SysTray {
                 sessionOpen: root.sessionOpen
                 onToggleSession: root.toggleSession()
+                onTriggerTest: console.log("Notification test button pressed")
             }
         }
     }
