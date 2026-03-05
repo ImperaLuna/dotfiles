@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import QtQuick
 import "LauncherLogic.js" as Logic
 import "../metrics"
@@ -154,15 +155,47 @@ PanelWindow {
         root.visible = false;
     }
 
+    function computeUiScale() {
+        const screenHeight = Number(screen?.height ?? 1080);
+        const dpr = Number(screen?.devicePixelRatio ?? 1.0);
+        const logicalPixelDensity = Number(screen?.logicalPixelDensity ?? (96 / 25.4));
+        const dpiFactor = (logicalPixelDensity * 25.4) / 96;
+        const screenName = String(screen?.name ?? "");
+        let hyprScale = 1.0;
+        const monitors = Hyprland.monitors ?? [];
+        for (let i = 0; i < monitors.length; i += 1) {
+            const mon = monitors[i];
+            if (String(mon?.name ?? "") === screenName) {
+                hyprScale = Number(mon?.scale ?? 1.0);
+                break;
+            }
+        }
+        if (hyprScale <= 0)
+            hyprScale = Number(Hyprland.focusedMonitor?.scale ?? 1.0);
+        const pixelFactor = Math.max(1.0, dpr, dpiFactor, hyprScale);
+        const effectiveHeight = screenHeight * pixelFactor;
+        const baseScale = Math.max(0.75, Math.min(2.0, effectiveHeight / 1080));
+        return Math.max(0.75, Math.min(4.0, baseScale * scaleBoost));
+    }
+
+    function syncToFocusedScreen() {
+        const focusedName = String(Hyprland.focusedMonitor?.name ?? "");
+        if (focusedName.length <= 0)
+            return;
+        const allScreens = Quickshell.screens ?? [];
+        for (let i = 0; i < allScreens.length; i += 1) {
+            const candidate = allScreens[i];
+            if (String(candidate?.name ?? "") === focusedName) {
+                root.screen = candidate;
+                return;
+            }
+        }
+    }
+
     onVisibleChanged: {
         if (visible) {
-            const screenHeight = screen?.height ?? 1080;
-            const dpr = screen?.devicePixelRatio ?? 1.0;
-            const logicalDpi = screen?.logicalPixelDensity ?? 96;
-            const effectiveHeight = screenHeight * dpr;
-            const densityFactor = logicalDpi / 96;
-            const baseScale = Math.max(0.75, Math.min(2.0, (effectiveHeight / 1080) * densityFactor));
-            uiScale = Math.max(0.75, Math.min(4.0, baseScale * scaleBoost));
+            syncToFocusedScreen();
+            uiScale = computeUiScale();
             view.resetPointerTracking();
             if (root.pendingAppsUpdate !== null) {
                 root.applyAppsUpdate(root.pendingAppsUpdate);
@@ -180,13 +213,8 @@ PanelWindow {
     }
 
     Component.onCompleted: {
-        const screenHeight = screen?.height ?? 1080;
-        const dpr = screen?.devicePixelRatio ?? 1.0;
-        const logicalDpi = screen?.logicalPixelDensity ?? 96;
-        const effectiveHeight = screenHeight * dpr;
-        const densityFactor = logicalDpi / 96;
-        const baseScale = Math.max(0.75, Math.min(2.0, (effectiveHeight / 1080) * densityFactor));
-        uiScale = Math.max(0.75, Math.min(4.0, baseScale * scaleBoost));
+        syncToFocusedScreen();
+        uiScale = computeUiScale();
         appLoader.running = true;
         runtimeSync.running = true;
     }
