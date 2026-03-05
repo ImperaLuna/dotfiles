@@ -90,19 +90,25 @@ Rectangle {
                 id: headerBlock
                 Layout.fillWidth: true
                 implicitHeight: root.notifExpanded ? appName.implicitHeight + summary.implicitHeight + Math.round(2 * root.notifUiScale) : summary.implicitHeight
+                // Keep text + time metadata inside a safe right bound so nothing
+                // collides with the expand toggle.
+                readonly property int rightTextEdge: Math.round(width - 10 * root.notifUiScale)
+                readonly property int titleGap: Math.round(6 * root.notifUiScale)
 
                 Text {
                     id: appName
                     anchors.top: parent.top
                     anchors.left: parent.left
-                    width: appNameMetrics.elideWidth
-                    text: appNameMetrics.elidedText
+                    width: root.notifExpanded
+                           ? Math.max(0, headerBlock.rightTextEdge - appName.x)
+                           : appNameMetrics.elideWidth
+                    text: root.notifExpanded ? root.notifAppName : appNameMetrics.elidedText
                     color: Colors.subtext0
                     font.family: Fonts.text
                     font.pixelSize: Math.round(10 * root.notifUiScale)
                     font.bold: true
                     maximumLineCount: 1
-                    elide: Text.ElideRight
+                    elide: root.notifExpanded ? Text.ElideNone : Text.ElideRight
                     opacity: root.notifExpanded ? 1 : 0
 
                     Behavior on opacity {
@@ -119,22 +125,31 @@ Rectangle {
                     font.family: appName.font.family
                     font.pixelSize: appName.font.pixelSize
                     elide: Text.ElideRight
-                    elideWidth: Math.max(0, expandToggle.x - timeText.implicitWidth - timeSep.implicitWidth - appName.x - Math.round(12 * root.notifUiScale))
+                    elideWidth: Math.max(0, rightMeta.x - appName.x - headerBlock.titleGap)
+                }
+
+                TextMetrics {
+                    id: appNameRawMetrics
+                    text: root.notifAppName
+                    font.family: appName.font.family
+                    font.pixelSize: appName.font.pixelSize
                 }
 
                 Text {
                     id: summary
                     anchors.top: parent.top
                     anchors.left: parent.left
-                    width: summaryMetrics.elideWidth
-                    text: summaryMetrics.elidedText
+                    width: root.notifExpanded
+                           ? Math.max(0, headerBlock.rightTextEdge - summary.x)
+                           : summaryMetrics.elideWidth
+                    text: root.notifExpanded ? root.notifSummary : summaryMetrics.elidedText
                     color: Colors.text
                     font.family: Fonts.text
                     font.pixelSize: Math.round(11 * root.notifUiScale)
                     font.bold: true
                     wrapMode: Text.WordWrap
-                    maximumLineCount: root.notifExpanded ? 2 : 1
-                    elide: Text.ElideRight
+                    maximumLineCount: root.notifExpanded ? 0 : 1
+                    elide: root.notifExpanded ? Text.ElideNone : Text.ElideRight
                 }
 
                 TextMetrics {
@@ -143,28 +158,62 @@ Rectangle {
                     font.family: summary.font.family
                     font.pixelSize: summary.font.pixelSize
                     elide: Text.ElideRight
-                    elideWidth: Math.max(0, expandToggle.x - timeText.implicitWidth - timeSep.implicitWidth - summary.x - Math.round(12 * root.notifUiScale))
+                    elideWidth: Math.max(0, rightMeta.x - summary.x - headerBlock.titleGap)
                 }
 
-                Text {
-                    id: timeSep
-                    anchors.top: summary.top
-                    anchors.left: summary.right
-                    anchors.leftMargin: Math.round(4 * root.notifUiScale)
-                    text: "•"
-                    color: Colors.subtext0
-                    font.pixelSize: Math.round(10 * root.notifUiScale)
+                TextMetrics {
+                    id: summaryRawMetrics
+                    text: root.notifSummary
+                    font.family: summary.font.family
+                    font.pixelSize: summary.font.pixelSize
                 }
 
-                Text {
-                    id: timeText
-                    anchors.top: timeSep.top
-                    anchors.left: timeSep.right
-                    anchors.leftMargin: Math.round(4 * root.notifUiScale)
-                    text: root.notifAgeText
-                    color: Colors.subtext0
-                    font.family: Fonts.text
-                    font.pixelSize: Math.round(10 * root.notifUiScale)
+                Item {
+                    id: rightMeta
+                    width: timeSep.implicitWidth + Math.round(4 * root.notifUiScale) + timeText.implicitWidth
+                    implicitHeight: Math.max(timeSep.implicitHeight, timeText.implicitHeight)
+                    readonly property int desiredX: {
+                        const base = root.notifExpanded ? appName : summary;
+                        const rawWidth = root.notifExpanded ? appNameRawMetrics.width : summaryRawMetrics.width;
+                        return Math.round(base.x + rawWidth + headerBlock.titleGap);
+                    }
+                    readonly property int maxX: Math.max(0, headerBlock.rightTextEdge - width)
+                    x: Math.min(maxX, desiredX)
+                    y: root.notifExpanded ? appName.y : summary.y
+
+                    Behavior on x {
+                        NumberAnimation {
+                            duration: Metrics.animDurationMid
+                            easing.type: Easing.InOutCubic
+                        }
+                    }
+
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: Metrics.animDurationMid
+                            easing.type: Easing.InOutCubic
+                        }
+                    }
+
+                    Text {
+                        id: timeSep
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "•"
+                        color: Colors.subtext0
+                        font.pixelSize: Math.round(10 * root.notifUiScale)
+                    }
+
+                    Text {
+                        id: timeText
+                        anchors.left: timeSep.right
+                        anchors.leftMargin: Math.round(4 * root.notifUiScale)
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: root.notifAgeText
+                        color: Colors.subtext0
+                        font.family: Fonts.text
+                        font.pixelSize: Math.round(10 * root.notifUiScale)
+                    }
                 }
 
                 states: State {
@@ -174,12 +223,6 @@ Rectangle {
                     AnchorChanges {
                         target: summary
                         anchors.top: appName.bottom
-                    }
-
-                    AnchorChanges {
-                        target: timeSep
-                        anchors.top: appName.top
-                        anchors.left: appName.right
                     }
                 }
 

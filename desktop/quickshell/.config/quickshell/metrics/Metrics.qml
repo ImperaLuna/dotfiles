@@ -26,7 +26,7 @@ QtObject {
     readonly property int launcherSubtitleFontBase: 11
 
     // Notifications
-    readonly property int notifWidthBase: 320
+    readonly property int notifWidthBase: 360
     readonly property int notifOuterPaddingBase: 12
     readonly property int notifCardGapBase: 10
 
