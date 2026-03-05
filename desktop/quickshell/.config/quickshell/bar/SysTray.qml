@@ -35,7 +35,7 @@ Item {
                 anchors.centerIn: parent
                 text: "science"
                 color: Colors.mantle
-                font.family: "Material Symbols Rounded"
+                font.family: Fonts.symbols
                 font.pixelSize: 14
                 font.weight: 700
                 renderType: Text.NativeRendering
@@ -62,7 +62,7 @@ Item {
                 text: "power_settings_new"
                 color: root.sessionOpen ? Colors.maroon : Colors.red
                 opacity: clickArea.containsMouse ? 0.85 : 1.0
-                font.family: "Material Symbols Rounded"
+                font.family: Fonts.symbols
                 font.pixelSize: 18
                 font.weight: 700
                 renderType: Text.NativeRendering

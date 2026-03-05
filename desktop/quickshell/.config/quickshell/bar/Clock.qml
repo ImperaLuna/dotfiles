@@ -3,7 +3,7 @@ import "../theme"
 
 Text {
     color: Colors.text
-    font.family: "JetBrainsMono Nerd Font"
+    font.family: Fonts.text
     font.pixelSize: 12
 
     property var now: new Date()

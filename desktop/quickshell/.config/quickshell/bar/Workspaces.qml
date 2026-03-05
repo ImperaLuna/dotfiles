@@ -49,7 +49,7 @@ Row {
                 anchors.centerIn: parent
                 text: pill.modelData.name
                 color: pill.modelData.active ? Colors.crust : Colors.subtext0
-                font.family: "JetBrainsMono Nerd Font"
+                font.family: Fonts.text
                 font.pixelSize: Math.max(9, Math.round(Metrics.workspaceFontBase * root.uiScale))
                 font.bold: pill.modelData.active
 

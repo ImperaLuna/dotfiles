@@ -46,7 +46,7 @@ Item {
             verticalAlignment: Text.AlignVCenter
             x: Metrics.scratchpadGlyphNudgeX
             color: root.isActive ? Colors.crust : Colors.subtext0
-            font.family: "JetBrainsMono Nerd Font"
+            font.family: Fonts.text
             font.pixelSize: Math.max(9, Math.round(Metrics.workspaceFontBase * root.uiScale))
             font.bold: root.isActive
             renderType: Text.NativeRendering

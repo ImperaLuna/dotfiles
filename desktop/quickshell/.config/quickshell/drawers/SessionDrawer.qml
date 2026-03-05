@@ -90,7 +90,7 @@ Item {
                 anchors.centerIn: parent
                 text: button.icon
                 color: Colors.text
-                font.family: "Material Symbols Rounded"
+                font.family: Fonts.symbols
                 font.pixelSize: 26
                 font.weight: 600
                 renderType: Text.NativeRendering
@@ -115,7 +115,7 @@ Item {
             anchors.horizontalCenter: iconButton.horizontalCenter
             text: button.title
             color: Colors.text
-            font.family: "JetBrainsMono Nerd Font"
+            font.family: Fonts.text
             font.pixelSize: 10
             font.bold: true
         }

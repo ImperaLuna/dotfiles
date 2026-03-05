@@ -121,7 +121,7 @@ Item {
                     color: Colors.text
                     placeholderTextColor: Colors.overlay0
                     font.pixelSize: 14
-                    font.family: "JetBrainsMono Nerd Font"
+                    font.family: Fonts.text
 
                     onTextChanged: viewRoot.queryChanged(text)
 
