@@ -36,7 +36,7 @@ PanelWindow {
     property real barCornerFactor: 0.75
     property int barCornerRadius: Math.max(1, Math.round(cornerRadius * barCornerFactor))
     property int inset: 0
-    property color chromeColor: Colors.test
+    property color chromeColor: Colors.base
     property bool powerMenuOpen: false
     property bool notificationOpen: false
     readonly property real rightPanelWidth: Math.max(panels.powerMenu.width, panels.notifications.visible ? panels.notifications.width : 0)

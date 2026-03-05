@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell.Hyprland
+import "../metrics"
 import "../theme"
 
 Row {

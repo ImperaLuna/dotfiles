@@ -12,7 +12,7 @@ ShapePath {
     readonly property real roundingY: flatten ? wrapper.height / 2 : rounding
 
     strokeWidth: -1
-    fillColor: root.hasArea ? Colors.test : "transparent"
+    fillColor: root.hasArea ? Colors.mantle : "transparent"
 
     PathLine {
         relativeX: -(root.wrapper.width + root.rounding)

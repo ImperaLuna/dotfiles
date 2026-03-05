@@ -147,7 +147,7 @@ PanelWindow {
                 anchors.bottomMargin: root.borderWidth
                 anchors.topMargin: 0
                 radius: Math.max(0, root.cornerRadius)
-                color: "black"
+                color: Colors.crust
             }
         }
     }

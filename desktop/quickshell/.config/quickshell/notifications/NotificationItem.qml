@@ -15,7 +15,9 @@ Rectangle {
     signal dismissRequested(int idx)
 
     radius: 16
-    color: Qt.alpha(Colors.mantle, 0.95)
+    color: Colors.surface0
+    border.width: 1
+    border.color: Colors.overlay0
     implicitHeight: contentColumn.implicitHeight + 16
 
     RowLayout {
@@ -108,7 +110,7 @@ Rectangle {
                 implicitWidth: 62
                 implicitHeight: 24
                 radius: 12
-                color: Qt.alpha(Colors.overlay0, 0.22)
+                color: Colors.surface2
 
                 Text {
                     anchors.centerIn: parent

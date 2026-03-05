@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "../bar"
-import "../theme"
+import "../metrics"
 
 Item {
     id: root

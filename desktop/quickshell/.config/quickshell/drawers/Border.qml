@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Effects
+import "../theme"
 
 Item {
     id: root
@@ -42,7 +43,7 @@ Item {
             anchors.bottomMargin: root.geometry.borderWidth
             anchors.topMargin: root.geometry.barHeight
             radius: Math.max(0, root.cornerRadius)
-            color: "black"
+            color: Colors.crust
         }
     }
 }
