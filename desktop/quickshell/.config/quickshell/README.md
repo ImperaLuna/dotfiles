@@ -11,6 +11,10 @@ qs
 ```bash
 qs -c <name>
 ```
+- During active development, prefer rolling restart (reduces notification-bus gaps):
+```bash
+~/.config/quickshell/scripts/qs-restart-safe.sh
+```
 
 ## Notifications Bootstrap
 

@@ -47,6 +47,7 @@ PanelWindow {
     property bool powerMenuOpen: false
     property bool notificationOpen: false
     property bool settingsOpen: false
+    readonly property int notifRounding: Math.round(root.cornerRadius * 1.5)
     readonly property real rightPanelWidth: Math.max(panels.powerMenu.width, panels.notifications.visible ? panels.notifications.width : 0)
 
     ChromeGeometry {
@@ -131,6 +132,21 @@ PanelWindow {
         anchors.margins: root.inset + geometry.borderWidth
         preferredRendererType: Shape.CurveRenderer
 
+        Item {
+            id: notifNormalWrapper
+            visible: panels.notifications.visible && !panels.notifications.panelOverflow
+            width: panels.notifications.width
+            height: panels.notifications.height
+        }
+
+        Item {
+            id: notifDrawerWrapper
+            visible: panels.notifications.visible && panels.notifications.panelOverflow
+            width: panels.notifications.width
+            y: panels.notifications.y - (root.inset + geometry.borderWidth)
+            height: Math.max(0, panelBackgrounds.height - y)
+        }
+
         PowerMenu.Background {
             wrapper: panels.powerMenu
             rounding: Math.round(root.cornerRadius * 1.8)
@@ -140,11 +156,19 @@ PanelWindow {
         }
 
         Notifications.Background {
-            wrapper: panels.notifications
-            rounding: Math.round(root.cornerRadius * 1.5)
+            wrapper: notifNormalWrapper
+            rounding: root.notifRounding
 
             startX: panelBackgrounds.width
             startY: panels.notifications.y - (root.inset + geometry.borderWidth)
+        }
+
+        Notifications.DrawerBackground {
+            wrapper: notifDrawerWrapper
+            rounding: root.notifRounding
+
+            startX: panelBackgrounds.width
+            startY: notifDrawerWrapper.y
         }
     }
 

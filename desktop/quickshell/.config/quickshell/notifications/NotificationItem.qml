@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window
 import "../metrics"
 import "../theme"
 
@@ -29,13 +30,36 @@ Rectangle {
     readonly property int actionRowHeight: notifExpanded ? Math.round(24 * root.notifUiScale) : 0
     readonly property int actionRowGap: notifExpanded ? Math.round(8 * root.notifUiScale) : 0
     readonly property int minContentHeight: Math.round(36 * root.notifUiScale)
-    readonly property int maxExpandedBodyHeight: Math.round(180 * root.notifUiScale)
+    readonly property int bottomSafeGap: Math.round(12 * root.notifUiScale)
+    readonly property int expandedBodyNaturalHeight: root.hasBodyText ? Math.round(bodyText.implicitHeight) : 0
+    readonly property int expandedContentNaturalHeight: headerBlock.implicitHeight
+            + (root.hasBodyText ? (expandedBodyNaturalHeight + contentColumn.spacing) : 0)
+    readonly property int naturalImplicitHeight: (root.notifExpanded
+            ? Math.max(Math.max(expandedContentNaturalHeight, avatarFrame.implicitHeight), minContentHeight)
+            : Math.max(Math.max(contentColumn.implicitHeight, avatarFrame.implicitHeight), minContentHeight))
+            + Math.round(16 * root.notifUiScale) + actionRowGap + actionRowHeight
+    readonly property int availableDrawerHeight: {
+        const _trackY = root.y;
+        const itemPos = root.mapToItem(null, 0, 0);
+        const windowHeight = Window.height > 0 ? Window.height : 1080;
+        const availableUntilBottom = windowHeight - itemPos.y - root.bottomSafeGap;
+        return Math.max(Math.round(120 * root.notifUiScale), Math.floor(availableUntilBottom));
+    }
+    // Notification Center Drawer: activated only when expanded content would
+    // otherwise overflow the bottom safe boundary.
+    readonly property bool notificationCenterDrawer: root.notifExpanded && naturalImplicitHeight > availableDrawerHeight
+    readonly property int drawerReservedHeight: headerBlock.implicitHeight
+            + Math.round(20 * root.notifUiScale) // card vertical paddings
+            + Math.round(4 * root.notifUiScale)  // header/body spacing
+            + root.actionRowGap
+            + root.actionRowHeight
+    readonly property int drawerBodyHeight: Math.max(Math.round(64 * root.notifUiScale), availableDrawerHeight - drawerReservedHeight)
 
     radius: Math.round(16 * root.notifUiScale)
     color: Colors.surface0
     border.width: Math.max(1, Math.round(root.notifUiScale))
     border.color: Colors.overlay0
-    implicitHeight: Math.max(Math.max(contentColumn.implicitHeight, avatarFrame.implicitHeight), minContentHeight) + Math.round(16 * root.notifUiScale) + actionRowGap + actionRowHeight
+    implicitHeight: notificationCenterDrawer ? availableDrawerHeight : naturalImplicitHeight
 
     RowLayout {
         anchors.fill: parent
@@ -238,8 +262,10 @@ Rectangle {
                 id: bodyContainer
                 Layout.fillWidth: true
                 visible: root.hasBodyText
-                readonly property bool bodyOverflow: bodyText.implicitHeight > root.maxExpandedBodyHeight
-                implicitHeight: root.notifExpanded ? Math.min(bodyText.implicitHeight, root.maxExpandedBodyHeight) : bodyText.implicitHeight
+                readonly property bool bodyOverflow: root.notificationCenterDrawer && bodyText.implicitHeight > root.drawerBodyHeight
+                implicitHeight: root.notifExpanded
+                                ? (root.notificationCenterDrawer ? Math.min(bodyText.implicitHeight, root.drawerBodyHeight) : bodyText.implicitHeight)
+                                : bodyText.implicitHeight
                 clip: true
 
                 Flickable {
